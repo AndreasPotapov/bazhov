@@ -1,0 +1,2 @@
+cd bazhov-library-demo
+npm run dev
