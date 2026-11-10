@@ -338,8 +338,8 @@ function PdfCover({ src, alt }: { src: string; alt: string }) {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        await page.render({ canvasContext: ctx, viewport }).promise;
-
+        await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+        
         const data = canvas.toDataURL("image/jpeg", 0.85);
         coverCache.set(src, data);
 
