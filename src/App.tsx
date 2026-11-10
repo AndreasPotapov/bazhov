@@ -189,10 +189,11 @@ function normalizeBook(value: Partial<Book>): Book {
         ? Number(value.year)
         : undefined;
 
+  const legacyGenre = (value as Record<string, unknown>).genre;
   const genres = Array.isArray(value.genres)
     ? value.genres.map(String).filter(Boolean)
-    : value.genre
-      ? [String(value.genre)]
+    : typeof legacyGenre === "string"
+      ? [legacyGenre]
       : [];
 
   return {
