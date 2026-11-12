@@ -36,24 +36,7 @@ export const books: Book[] = [
     "rack": "2",
     "shelf": "1",
     "inventoryNumber": "B-0002",
-    "pdfUrl": "",
-    "published": true
-  },
-  {
-    "id": "B-0001",
-    "title": "огромнейшееназваникнигиоднимсловом",
-    "authors": [
-      "автор авторович а если очень длинный автор вдруг такое бывает А. С."
-    ],
-    "year": 2026,
-    "publisher": "москва",
-    "category": "Драматургия",
-    "genres": [],
-    "annotation": "а если аннотация будет очень длинная и тяжелая что будет там показываться ",
-    "rack": "2",
-    "shelf": "1",
-    "inventoryNumber": "B-0001",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0001.pdf",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0002.pdf",
     "published": true
   }
 ];
