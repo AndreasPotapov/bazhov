@@ -11,10 +11,9 @@ export type Book = {
   rack?: string;
   inventoryNumber?: string;
   pdfPath?: string;
-  pdfUrl?: string; // <-- ДОБАВЛЕНО: ссылка на облако
+  pdfUrl?: string;
   pdfFileName?: string;
   published?: boolean;
 };
-
 
 export const books: Book[] = [];
