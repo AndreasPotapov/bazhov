@@ -18,6 +18,28 @@ export type Book = {
 
 export const books: Book[] = [
   {
+    "id": "B-0002",
+    "title": "Собрание сочинений в 3 томах. Том 1",
+    "authors": [
+      "П. П. Бажов"
+    ],
+    "year": 1986,
+    "publisher": "Правда, Москва",
+    "category": "Художественная литература",
+    "genres": [
+      "Альманахи и сборники",
+      "Рассказы и новеллы",
+      "Сборники прозы",
+      "Сказки и познавательные истории"
+    ],
+    "annotation": "Собрание сочинений печатается по изданию:\nП. П. Бажов. Сочинения в трех томах.\nИзд-во «Правда», 1976.",
+    "rack": "2",
+    "shelf": "1",
+    "inventoryNumber": "B-0002",
+    "pdfUrl": "",
+    "published": true
+  },
+  {
     "id": "B-0001",
     "title": "огромнейшееназваникнигиоднимсловом",
     "authors": [
@@ -30,6 +52,7 @@ export const books: Book[] = [
     "annotation": "а если аннотация будет очень длинная и тяжелая что будет там показываться ",
     "rack": "2",
     "shelf": "1",
+    "inventoryNumber": "B-0001",
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0001.pdf",
     "published": true
   }
