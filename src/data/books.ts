@@ -19,15 +19,15 @@ export type Book = {
 export const books: Book[] = [
   {
     "id": "B-0001",
-    "title": "книга 1",
+    "title": "огромнейшееназваникнигиоднимсловом",
     "authors": [
-      "автор авторович"
+      "автор авторович а если очень длинный автор вдруг такое бывает А. С."
     ],
     "year": 2026,
     "publisher": "москва",
     "category": "Драматургия",
     "genres": [],
-    "annotation": "",
+    "annotation": "а если аннотация будет очень длинная и тяжелая что будет там показываться ",
     "rack": "2",
     "shelf": "1",
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0001.pdf",
