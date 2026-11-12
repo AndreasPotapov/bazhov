@@ -135,7 +135,7 @@ function normalizeBook(value: Partial<Book>): Book {
     annotation: String(value.annotation ?? "").trim(),
     rack: String(value.rack ?? "").trim(),
     shelf: String(value.shelf ?? "").trim(),
-    inventoryNumber: String(value.inventoryNumber ?? "").trim(),
+    inventoryNumber: String(value.id ?? "").trim(), // всегда равен id
     pdfPath: String(value.pdfPath ?? "").trim(),
     pdfUrl: String(value.pdfUrl ?? "").trim(),
     pdfFileName: String(value.pdfFileName ?? "").trim(),
@@ -315,10 +315,18 @@ export default function App() {
   }, [books, selectedCategory, selectedGenres, yearRange, query]);
 
   // Функция получения правильной ссылки на PDF
-  function getPdfUrl(book: Book): string {
-    if (book.pdfUrl) return book.pdfUrl; // Ссылка из облака
+   function getPdfUrl(book: Book): string {
+    // Если ссылка уже полная (из Yandex Cloud) — возвращаем как есть
+    if (book.pdfUrl && book.pdfUrl.startsWith("http")) {
+      return book.pdfUrl;
+    }
+    // Если ссылка относительная — добавляем базовый путь
+    if (book.pdfUrl) {
+      return `${import.meta.env.BASE_URL}${book.pdfUrl.replace(/^\//, "")}`;
+    }
+    // Если pdfUrl нет, пробуем pdfPath
     if (book.pdfPath) {
-      return book.pdfPath.startsWith("http") ? book.pdfPath : `${import.meta.env.BASE_URL}${book.pdfPath}`;
+      return `${import.meta.env.BASE_URL}${book.pdfPath.replace(/^\//, "")}`;
     }
     return "";
   }
@@ -371,7 +379,7 @@ export default function App() {
       <style>{`
         @font-face {
           font-family: "Wremena";
-          src: url("/fonts/Wremena Bold.otf") format("opentype");
+          src: url("${import.meta.env.BASE_URL}fonts/Wremena Bold.otf") format("opentype");
           font-weight: 700;
           font-style: normal;
           font-display: swap;
@@ -379,7 +387,7 @@ export default function App() {
 
         @font-face {
           font-family: "Moniqa";
-          src: url("/fonts/Moniqa-SemBdCondHeading.otf") format("opentype");
+          src: url("${import.meta.env.BASE_URL}fonts/Moniqa-SemBdCondHeading.otf") format("opentype");
           font-weight: 600;
           font-style: normal;
           font-display: swap;
@@ -387,11 +395,12 @@ export default function App() {
 
         @font-face {
           font-family: "Cochin";
-          src: url("/fonts/Cochin.ttc");
+          src: url("${import.meta.env.BASE_URL}fonts/Cochin.ttc");
           font-weight: 500;
           font-style: normal;
           font-display: swap;
         }
+        /* ... остальные стили ... */
 
         :root {
           --color-green: #31563f;
