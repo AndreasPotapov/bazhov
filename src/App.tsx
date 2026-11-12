@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import Papa from "papaparse";
+import { useEffect, useMemo, useState } from "react";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { russian } from "multilingual-stemmer";
@@ -10,22 +9,11 @@ import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-type CsvRow = Record<string, string>;
-
-type ImportPreviewRow = {
-  book: Book;
-  errors: string[];
-  warnings: string[];
-};
-
 type CategoryNode = {
   id: string;
   name: string;
   children?: CategoryNode[];
 };
-
-const STORAGE_KEY = "bazhov-library-books-v3";
-const DEMO_ADMIN_PIN = "museum-demo";
 
 // ---------- РУБРИКАТОР: КАТЕГОРИИ (ТЕМЫ) ----------
 const CATEGORIES: CategoryNode[] = [
@@ -69,55 +57,22 @@ const CATEGORIES: CategoryNode[] = [
 
 // ---------- РУБРИКАТОР: ЖАНРЫ (ФОРМЫ) ----------
 const GENRES: string[] = [
-  "Альманахи и сборники",
-  "Антологии поэзии",
-  "Атласы и карты",
-  "Баллады и сонеты",
-  "Библиографические пособия",
-  "Былины и эпос",
-  "Военная проза",
-  "Газеты",
-  "Детективы и триллеры",
-  "Детская проза и поэзия",
-  "Историческая проза",
-  "Книги для дошкольников",
-  "Книги для младшего школьного возраста",
-  "Книги для подростков",
-  "Книги для юношества",
-  "Комедии",
-  "Легенды и предания",
-  "Любовная проза",
-  "Методические материалы",
-  "Мифы и мифологические сюжеты",
-  "Повести",
-  "Поэмы",
-  "Приключения",
-  "Пьесы",
-  "Рассказы и новеллы",
-  "Романы",
-  "Самоучители и курсы",
-  "Сборники прозы",
-  "Сборники стихов",
-  "Сказки",
-  "Сказки и познавательные истории",
-  "Словари",
-  "Собрания сочинений и избранные произведения",
-  "Социальная и реалистическая проза",
-  "Справочники",
-  "Стихотворения",
-  "Трагедии и драмы",
-  "Ужасы и мистика",
-  "Учебники и пособия",
-  "Фантастика",
-  "Фольклорные сборники",
-  "Фэнтези",
-  "Хронологии и календари",
-  "Энциклопедии",
-  "Эссе и литературные миниатюры",
-  "Юмор и сатира",
+  "Альманахи и сборники", "Антологии поэзии", "Атласы и карты", "Баллады и сонеты",
+  "Библиографические пособия", "Былины и эпос", "Военная проза", "Газеты",
+  "Детективы и триллеры", "Детская проза и поэзия", "Историческая проза",
+  "Книги для дошкольников", "Книги для младшего школьного возраста",
+  "Книги для подростков", "Книги для юношества", "Комедии", "Легенды и предания",
+  "Любовная проза", "Методические материалы", "Мифы и мифологические сюжеты",
+  "Повести", "Поэмы", "Приключения", "Пьесы", "Рассказы и новеллы", "Романы",
+  "Самоучители и курсы", "Сборники прозы", "Сборники стихов", "Сказки",
+  "Сказки и познавательные истории", "Словари", "Собрания сочинений и избранные произведения",
+  "Социальная и реалистическая проза", "Справочники", "Стихотворения",
+  "Трагедии и драмы", "Ужасы и мистика", "Учебники и пособия", "Фантастика",
+  "Фольклорные сборники", "Фэнтези", "Хронологии и календари", "Энциклопедии",
+  "Эссе и литературные миниатюры", "Юмор и сатира",
 ];
 
-// ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ КАТЕГОРИЙ ----------
+// ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
 function flattenCategories(nodes: CategoryNode[], prefix = ""): { id: string; name: string; label: string }[] {
   const result: { id: string; name: string; label: string }[] = [];
   for (const node of nodes) {
@@ -158,22 +113,6 @@ function getCategoryName(id: string): string {
   return node ? node.name : id;
 }
 
-const emptyBook: Book = {
-  id: "",
-  title: "",
-  authors: [],
-  year: undefined,
-  publisher: "",
-  category: "",
-  genres: [],
-  annotation: "",
-  rack: "",
-  shelf: "",
-  inventoryNumber: "",
-  pdfPath: "",
-  published: false,
-};
-
 function normalizeBook(value: Partial<Book>): Book {
   const authors = Array.isArray(value.authors)
     ? value.authors.map((a) => String(a).trim()).filter(Boolean)
@@ -209,25 +148,12 @@ function normalizeBook(value: Partial<Book>): Book {
     shelf: String(value.shelf ?? "").trim(),
     inventoryNumber: String(value.inventoryNumber ?? "").trim(),
     pdfPath: String(value.pdfPath ?? "").trim(),
+    pdfUrl: String(value.pdfUrl ?? "").trim(),
     pdfFileName: String(value.pdfFileName ?? "").trim(),
     published: value.published !== false,
   };
 }
 
-function readInitialBooks(): Book[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed: unknown = JSON.parse(stored);
-      if (Array.isArray(parsed)) return parsed.map((item) => normalizeBook(item));
-    }
-  } catch {
-    // повреждённые данные — используем исходный набор
-  }
-  return seedBooks.map((book) => normalizeBook(book));
-}
-
-// ---------- МОРФОЛОГИЯ ----------
 function stemText(text: string): string[] {
   const normalized = text.toLocaleLowerCase("ru-RU").replaceAll("ё", "е");
   return normalized
@@ -249,58 +175,14 @@ function bookStems(book: Book): string[] {
   ]
     .filter(Boolean)
     .join(" ");
-
   return stemText(text);
 }
 
 function matchesSearch(book: Book, query: string): boolean {
   const queryStems = stemText(query);
   if (queryStems.length === 0) return true;
-
   const bookStemList = bookStems(book);
   return queryStems.every((stem) => bookStemList.includes(stem));
-}
-
-// ---------- CSV ----------
-function normalizeHeader(value: string): string {
-  return value.trim().toLowerCase().replace(/[\s_-]+/g, "");
-}
-
-const CSV_FIELDS: Record<string, keyof Book> = {
-  id: "id", идентификатор: "id", код: "id",
-  title: "title", название: "title",
-  authors: "authors", автор: "authors", авторы: "authors",
-  year: "year", год: "year",
-  publisher: "publisher", издательство: "publisher",
-  category: "category", категория: "category",
-  genres: "genres", genre: "genres", жанр: "genres", жанры: "genres",
-  annotation: "annotation", аннотация: "annotation",
-  rack: "rack", стеллаж: "rack",
-  shelf: "shelf", полка: "shelf",
-  inventorynumber: "inventoryNumber", инвентарныйномер: "inventoryNumber",
-  pdfpath: "pdfPath", pdf: "pdfPath", файл: "pdfPath", путькpdf: "pdfPath",
-};
-
-function rowToBook(row: CsvRow): Book {
-  const result: Partial<Book> = { ...emptyBook, genres: [] };
-
-  for (const [header, value] of Object.entries(row)) {
-    const field = CSV_FIELDS[normalizeHeader(header)];
-    if (!field) continue;
-
-    if (field === "authors") {
-      result.authors = String(value ?? "").split(/[|;]/).map((a) => a.trim()).filter(Boolean);
-    } else if (field === "year") {
-      const num = Number(String(value ?? "").trim());
-      if (Number.isFinite(num)) result.year = num;
-    } else if (field === "genres") {
-      result.genres = String(value ?? "").split(/[|;]/).map((g) => g.trim()).filter(Boolean);
-    } else {
-      (result as Record<string, unknown>)[field] = String(value ?? "").trim();
-    }
-  }
-
-  return normalizeBook(result);
 }
 
 // ---------- PDF-ОБЛОЖКА ----------
@@ -334,7 +216,6 @@ function PdfCover({ src, alt }: { src: string; alt: string }) {
 
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -367,52 +248,35 @@ function PdfCover({ src, alt }: { src: string; alt: string }) {
 }
 
 export default function App() {
-  const [books, setBooks] = useState<Book[]>(readInitialBooks);
+  // Данные загружаются ОДИН РАЗ из файла и больше не сохраняются в localStorage
+  const books = useMemo(() => seedBooks.map(normalizeBook), []);
+  
   const [query, setQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   
-  // Состояние фильтров
+  // Фильтры
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [yearRange, setYearRange] = useState<[number, number] | null>(null);
   
-  // Состояние выпадающих списков
+  // Выпадающие списки
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [expandedCategoryIds, setExpandedCategoryIds] = useState<string[]>([]);
   const [genreDropdownOpen, setGenreDropdownOpen] = useState(false);
-  const [adminGenreDropdownOpen, setAdminGenreDropdownOpen] = useState(false);
 
-  const [admin, setAdmin] = useState(false);
-  const [pin, setPin] = useState("");
-  const [pinError, setPinError] = useState("");
-  const [editingBook, setEditingBook] = useState<Book | null>(null);
+  // Модальное окно
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [importRows, setImportRows] = useState<ImportPreviewRow[]>([]);
-  const [importMessage, setImportMessage] = useState("");
-  const [pdfUrls, setPdfUrls] = useState<Record<string, string>>({});
+  
+  // Пагинация
   const [visibleCount, setVisibleCount] = useState(5);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
-    } catch {
-      setImportMessage("Не удалось сохранить данные в localStorage. Возможно, хранилище браузера заполнено.");
-    }
-  }, [books]);
-
-  useEffect(() => {
-    return () => {
-      Object.values(pdfUrls).forEach((url) => URL.revokeObjectURL(url));
-    };
-  }, [pdfUrls]);
 
   useEffect(() => {
     setVisibleCount(5);
   }, [query, selectedCategory, selectedGenres, yearRange]);
 
   const filterableBooks = useMemo(
-    () => books.filter((book) => admin || book.published !== false),
-    [books, admin],
+    () => books.filter((book) => book.published !== false),
+    [books]
   );
 
   const yearBounds = useMemo(() => {
@@ -438,13 +302,11 @@ export default function App() {
 
   const visibleBooks = useMemo(() => {
     return books.filter((book) => {
-      if (!admin && book.published === false) return false;
+      if (book.published === false) return false;
 
       if (selectedCategory) {
         const selectedNames = getCategoryNamesWithChildren(selectedCategory);
-        if (!selectedNames.includes(book.category || "")) {
-          return false;
-        }
+        if (!selectedNames.includes(book.category || "")) return false;
       }
 
       if (selectedGenres.length > 0) {
@@ -461,121 +323,15 @@ export default function App() {
 
       return matchesSearch(book, query);
     });
-  }, [books, admin, selectedCategory, selectedGenres, yearRange, query]);
+  }, [books, selectedCategory, selectedGenres, yearRange, query]);
 
-  function openAdmin() {
-    if (admin) {
-      setAdmin(false);
-      setEditingBook(null);
-      return;
+  // Функция получения правильной ссылки на PDF
+  function getPdfUrl(book: Book): string {
+    if (book.pdfUrl) return book.pdfUrl; // Ссылка из облака
+    if (book.pdfPath) {
+      return book.pdfPath.startsWith("http") ? book.pdfPath : `${import.meta.env.BASE_URL}${book.pdfPath}`;
     }
-    setPin("");
-    setPinError("");
-  }
-
-  function submitPin(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (pin === DEMO_ADMIN_PIN) {
-      setAdmin(true);
-      setPinError("");
-    } else {
-      setPinError("Неверный демонстрационный PIN.");
-    }
-  }
-
-  function saveBook(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!editingBook) return;
-
-    const book = normalizeBook(editingBook);
-    if (!book.id || !book.title) return;
-
-    setBooks((current) => {
-      const exists = current.some((item) => item.id === book.id);
-      if (exists) {
-        return current.map((item) => (item.id === book.id ? book : item));
-      }
-      return [book, ...current];
-    });
-    setEditingBook(null);
-  }
-
-  function deleteBook(id: string) {
-    if (!window.confirm("Удалить эту карточку?")) return;
-    setBooks((current) => current.filter((book) => book.id !== id));
-    if (selectedBook?.id === id) setSelectedBook(null);
-  }
-
-  function togglePublished(id: string) {
-    setBooks((current) =>
-      current.map((book) => (book.id === id ? { ...book, published: book.published === false } : book)),
-    );
-  }
-
-  function attachPdf(file: File | undefined) {
-    if (!file || !editingBook) return;
-    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-      setImportMessage("Можно прикрепить только PDF-файл.");
-      return;
-    }
-
-    const url = URL.createObjectURL(file);
-    setPdfUrls((current) => {
-      const oldUrl = current[editingBook.id];
-      if (oldUrl) URL.revokeObjectURL(oldUrl);
-      return { ...current, [editingBook.id || "new"]: url };
-    });
-    setEditingBook({ ...editingBook, pdfPath: file.name, pdfFileName: file.name });
-    setImportMessage("PDF доступен в этой вкладке. Файл не загружается в облако и не сохраняется в localStorage.");
-  }
-
-  function parseCsv(file: File | undefined) {
-    if (!file) return;
-    setImportMessage("");
-    Papa.parse<CsvRow>(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: ({ data, errors }) => {
-        if (errors.length) setImportMessage(`CSV прочитан с предупреждениями: ${errors.length}.`);
-        const existingIds = new Set(books.map((book) => book.id));
-        const seenIds = new Set<string>();
-
-        const preview = data.map((row) => {
-          const book = rowToBook(row);
-          const rowErrors: string[] = [];
-          const warnings: string[] = [];
-
-          if (!book.id) rowErrors.push("Не заполнен ID.");
-          if (!book.title) rowErrors.push("Не заполнено название.");
-          if (book.id && existingIds.has(book.id)) {
-            warnings.push("Такой ID уже есть в каталоге.");
-          } else if (book.id && seenIds.has(book.id)) {
-            warnings.push("Такой ID повторяется в этом CSV.");
-          }
-          if (book.id) seenIds.add(book.id);
-          return { book, errors: rowErrors, warnings };
-        });
-
-        setImportRows(preview);
-        setImportMessage(`Подготовлено строк для проверки: ${preview.length}.`);
-      },
-      error: () => setImportMessage("Не удалось прочитать CSV-файл."),
-    });
-  }
-
-  function importValidRows() {
-    const validRows = importRows.filter((row) => row.errors.length === 0 && row.warnings.length === 0);
-    if (!validRows.length) {
-      setImportMessage("Нет строк без ошибок и предупреждений для импорта.");
-      return;
-    }
-    setBooks((current) => [...validRows.map((row) => row.book), ...current]);
-    setImportMessage(`Импортировано карточек: ${validRows.length}.`);
-    setImportRows([]);
-  }
-
-  function pdfHref(book: Book): string {
-    return pdfUrls[book.id] ?? pdfUrls["new"] ?? book.pdfPath ?? "";
+    return "";
   }
 
   // ---------- РЕНДЕР ДЕРЕВА КАТЕГОРИЙ ----------
@@ -620,8 +376,6 @@ export default function App() {
       </div>
     );
   }
-
-  const flatCategories = useMemo(() => flattenCategories(CATEGORIES), []);
 
   return (
     <main className="app">
@@ -710,19 +464,6 @@ export default function App() {
         .brand .muted { font-size: 0.95rem; }
         .muted { color: var(--color-muted); }
 
-        .admin-actions {
-          display: flex;
-          gap: 12px;
-          align-items: center;
-          flex-wrap: wrap;
-        }
-
-        .admin-label {
-          color: var(--color-green);
-          font-weight: 600;
-          font-size: 0.9rem;
-        }
-
         .panel {
           padding: 24px;
           margin: 0 0 32px;
@@ -741,20 +482,6 @@ export default function App() {
         }
 
         .panel p { margin: 0; }
-
-        .panel h3 {
-          margin: 16px 0 12px;
-          font-family: var(--font-display);
-          font-size: 1.1rem;
-          font-weight: 700;
-          color: var(--color-green);
-        }
-
-        .panel .topbar {
-          padding-bottom: 14px;
-          margin-bottom: 16px;
-          border-bottom: 1px solid var(--color-border);
-        }
 
         .search-area { margin-bottom: 40px; }
 
@@ -821,10 +548,7 @@ export default function App() {
           color: var(--color-green);
         }
 
-        /* Стили для выпадающих списков (категории и жанры) */
-        .category-dropdown {
-          position: relative;
-        }
+        .category-dropdown { position: relative; }
 
         .category-dropdown-btn {
           width: 100%;
@@ -894,9 +618,7 @@ export default function App() {
           color: var(--color-green);
         }
 
-        .expand-spacer {
-          width: 24px;
-        }
+        .expand-spacer { width: 24px; }
 
         .rubric-option {
           display: flex;
@@ -984,17 +706,6 @@ export default function App() {
         button.secondary:hover {
           background: var(--color-green);
           color: #fff;
-        }
-
-        button.danger {
-          background: var(--color-danger);
-        }
-
-        button.danger:hover { background: #7f2929; }
-
-        button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
         }
 
         /* ---------- Catalog & Horizontal Cards ---------- */
@@ -1156,72 +867,6 @@ export default function App() {
           min-width: 200px;
         }
 
-        .form-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 16px;
-          margin-top: 12px;
-        }
-
-        .field { display: grid; gap: 6px; }
-        .field.full { grid-column: 1 / -1; }
-        .field span { font-size: 0.9rem; color: var(--color-muted); }
-
-        input, select, textarea {
-          width: 100%;
-          border: 1.5px solid var(--color-border);
-          border-radius: 6px;
-          padding: 10px 14px;
-          background: #fff;
-          font-family: var(--font-body);
-          font-size: 0.95rem;
-          outline: none;
-          transition: border-color 0.15s, box-shadow 0.15s;
-        }
-
-        input:focus, select:focus, textarea:focus {
-          border-color: var(--color-green);
-          box-shadow: 0 0 0 3px rgb(49 86 63 / 10%);
-        }
-
-        input[type="checkbox"] { width: auto; accent-color: var(--color-green); }
-        textarea { min-height: 100px; resize: vertical; }
-
-        .controls {
-          display: flex;
-          gap: 12px;
-          align-items: center;
-          flex-wrap: wrap;
-        }
-
-        .preview { overflow-x: auto; margin-top: 16px; }
-
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          min-width: 650px;
-          font-size: 0.9rem;
-        }
-
-        th, td {
-          text-align: left;
-          padding: 12px;
-          border-bottom: 1px solid var(--color-border);
-          vertical-align: top;
-        }
-
-        th {
-          font-weight: 600;
-          color: var(--color-muted);
-          font-size: 0.8rem;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-          background: var(--color-bg);
-        }
-
-        .error { color: var(--color-error); font-size: 0.9rem; }
-        .warning { color: var(--color-warning); font-size: 0.9rem; }
-
         .modal-backdrop {
           position: fixed;
           inset: 0;
@@ -1275,38 +920,6 @@ export default function App() {
           border-bottom: 1px solid var(--color-green);
         }
 
-        .notice {
-          margin: 16px 0;
-          padding: 12px 16px;
-          background: var(--color-bg);
-          border-left: 3px solid var(--color-green);
-          border-radius: 2px;
-          color: var(--color-muted);
-          font-size: 0.9rem;
-        }
-
-        .admin-footer {
-          margin-top: 80px;
-          padding-top: 32px;
-          border-top: 1px solid var(--color-border);
-        }
-
-        .admin-footer h3 {
-          margin: 0 0 8px;
-          font-family: var(--font-display);
-          font-size: 1.1rem;
-          font-weight: 700;
-          color: var(--color-green);
-        }
-
-        .admin-footer code {
-          padding: 2px 6px;
-          background: var(--color-bg);
-          border-radius: 3px;
-          font-family: ui-monospace, "SF Mono", Menlo, monospace;
-          font-size: 0.85em;
-        }
-
         @media (max-width: 700px) {
           .app { padding: 20px 16px 60px; }
           .topbar { margin-bottom: 24px; padding-bottom: 16px; }
@@ -1316,8 +929,6 @@ export default function App() {
           .cover-wrap { grid-column: 1; grid-row: auto; justify-self: center; width: 140px; }
           .book-info { grid-column: 1; grid-row: auto; width: 100%; }
 
-          .form-grid { grid-template-columns: 1fr; }
-          .field.full { grid-column: auto; }
           .search-line { flex-direction: column; align-items: stretch; }
           .modal { padding: 24px; }
           .filters-panel { padding: 20px; }
@@ -1326,110 +937,18 @@ export default function App() {
 
       <header className="topbar">
         <div className="brand">
-          <h1>Электронный кабинет П. П. Бажова</h1>
+          <h1>Электронная библиотека</h1>
           <div className="muted">Книжная коллекция дома-музея П. П. Бажова</div>
-        </div>
-        <div className="admin-actions">
-          {admin && <span className="admin-label">Режим сотрудника</span>}
-          {admin && (
-            <button className="secondary" onClick={openAdmin}>
-              Выйти из админ-панели
-            </button>
-          )}
         </div>
       </header>
 
-      {!admin && (
-        <section className="panel">
-          <strong>Каталог для посетителей</strong>
-          <p className="muted">
-            Используйте поиск по библиографическим данным или откройте фильтры,
-            чтобы уточнить категорию, жанр и год издания.
-          </p>
-        </section>
-      )}
-
-      {admin && (
-        <section className="panel">
-          <div className="topbar">
-            <div>
-              <strong>Управление каталогом</strong>
-              <p className="muted">Данные прототипа сохраняются в этом браузере.</p>
-            </div>
-            <button onClick={() => setEditingBook({ ...emptyBook })}>
-              Добавить книгу
-            </button>
-          </div>
-
-          <div className="admin-actions">
-            <label>
-              <span className="muted">Импорт CSV: </span>
-              <input
-                type="file"
-                accept=".csv,text/csv"
-                onChange={(event) => parseCsv(event.target.files?.[0])}
-              />
-            </label>
-            <button
-              className="secondary"
-              onClick={() => {
-                setImportRows([]);
-                setImportMessage("");
-              }}
-            >
-              Очистить предпросмотр
-            </button>
-          </div>
-
-          <p className="notice">
-            CSV импортирует только карточки. Загрузка PDF в облачное хранилище
-            требует серверной части.
-          </p>
-
-          {importMessage && <p className="notice">{importMessage}</p>}
-
-          {importRows.length > 0 && (
-            <div className="preview">
-              <h3>Предпросмотр импорта</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Название</th>
-                    <th>Год</th>
-                    <th>Результат проверки</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {importRows.map((row, index) => (
-                    <tr key={`${row.book.id}-${index}`}>
-                      <td>{row.book.id || "—"}</td>
-                      <td>{row.book.title || "—"}</td>
-                      <td>{row.book.year ?? "—"}</td>
-                      <td>
-                        {row.errors.map((item) => (
-                          <div className="error" key={item}>{item}</div>
-                        ))}
-                        {row.warnings.map((item) => (
-                          <div className="warning" key={item}>{item}</div>
-                        ))}
-                        {!row.errors.length && !row.warnings.length && "Готово к импорту"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <p>
-                Строки с ошибками и предупреждениями пропускаются; дубли ID не
-                перезаписывают существующие карточки.
-              </p>
-              <button onClick={importValidRows}>
-                Импортировать корректные строки
-              </button>
-            </div>
-          )}
-        </section>
-      )}
+      <section className="panel">
+        <strong>Каталог для посетителей</strong>
+        <p className="muted">
+          Используйте поиск по библиографическим данным или откройте фильтры,
+          чтобы уточнить категорию, жанр и год издания.
+        </p>
+      </section>
 
       <section className="search-area" aria-label="Поиск и фильтры">
         <div className="search-line">
@@ -1561,97 +1080,77 @@ export default function App() {
         )}
       </section>
 
-      <p className="muted">
-        Найдено книг: {visibleBooks.length}
-        {admin ? ` · Всего в каталоге: ${books.length}` : ""}
-      </p>
+      <p className="muted">Найдено книг: {visibleBooks.length}</p>
 
       {visibleBooks.length === 0 ? (
         <section className="panel">По вашему запросу ничего не найдено.</section>
       ) : (
         <>
           <section className="grid">
-            {visibleBooks.slice(0, visibleCount).map((book) => (
-              <article className="book-card" key={book.id}>
-                <span className="tag">{book.category || "Без категории"}</span>
-                
-                {book.pdfPath && (
-                  <PdfCover
-                    src={pdfHref(book)}
-                    alt={`Обложка книги «${book.title}»`}
-                  />
-                )}
-
-                <div className="book-info">
-                  <h2>{book.title}</h2>
-
-                  {book.authors.length > 0 && (
-                    <p><strong>Автор</strong>{book.authors.join(", ")}</p>
-                  )}
+            {visibleBooks.slice(0, visibleCount).map((book) => {
+              const fileUrl = getPdfUrl(book);
+              return (
+                <article className="book-card" key={book.id}>
+                  <span className="tag">{book.category || "Без категории"}</span>
                   
-                  {book.year && (
-                    <p><strong>Год издания</strong>{book.year}</p>
-                  )}
-                  
-                  {book.publisher && (
-                    <p><strong>Издательство</strong>{book.publisher}</p>
-                  )}
-                  
-                  {book.genres && book.genres.length > 0 && (
-                    <p><strong>Жанры</strong>{book.genres.join(", ")}</p>
-                  )}
-                  
-                  {(book.rack || book.shelf) && (
-                    <p><strong>Место хранения</strong>Шкаф № {book.rack || "—"}, полка № {book.shelf || "—"}</p>
-                  )}
-                  
-                  {book.inventoryNumber && (
-                    <p><strong>Инвентарный номер</strong>{book.inventoryNumber}</p>
+                  {fileUrl && (
+                    <PdfCover
+                      src={fileUrl}
+                      alt={`Обложка книги «${book.title}»`}
+                    />
                   )}
 
-                  {book.annotation && (
-                    <p className="book-annotation">{book.annotation}</p>
-                  )}
-                  
-                  {admin && (
-                    <p className="muted" style={{ fontSize: "0.85rem" }}>
-                      ID: {book.id} · {book.published === false ? "Не опубликована" : "Опубликована"}
-                    </p>
-                  )}
+                  <div className="book-info">
+                    <h2>{book.title}</h2>
 
-                  <div className="card-actions">
-                    <button className="secondary" onClick={() => setSelectedBook(book)}>
-                      Подробнее
-                    </button>
-                    
-                    {book.pdfPath && (
-                      <a
-                        href={pdfHref(book)}
-                        target="_blank"
-                        rel="noreferrer"
-                        download={book.pdfPath.split("/").pop()}
-                      >
-                        Скачать PDF
-                      </a>
+                    {book.authors.length > 0 && (
+                      <p><strong>Автор</strong>{book.authors.join(", ")}</p>
                     )}
                     
-                    {admin && (
-                      <>
-                        <button className="secondary" onClick={() => setEditingBook({ ...book })}>
-                          Изменить
-                        </button>
-                        <button className="secondary" onClick={() => togglePublished(book.id)}>
-                          {book.published === false ? "Опубликовать" : "Снять с публикации"}
-                        </button>
-                        <button className="danger" onClick={() => deleteBook(book.id)}>
-                          Удалить
-                        </button>
-                      </>
+                    {book.year && (
+                      <p><strong>Год издания</strong>{book.year}</p>
                     )}
+                    
+                    {book.publisher && (
+                      <p><strong>Издательство</strong>{book.publisher}</p>
+                    )}
+                    
+                    {book.genres && book.genres.length > 0 && (
+                      <p><strong>Жанры</strong>{book.genres.join(", ")}</p>
+                    )}
+                    
+                    {(book.rack || book.shelf) && (
+                      <p><strong>Место хранения</strong>Шкаф № {book.rack || "—"}, полка № {book.shelf || "—"}</p>
+                    )}
+                    
+                    {book.inventoryNumber && (
+                      <p><strong>Инвентарный номер</strong>{book.inventoryNumber}</p>
+                    )}
+
+                    {book.annotation && (
+                      <p className="book-annotation">{book.annotation}</p>
+                    )}
+
+                    <div className="card-actions">
+                      <button className="secondary" onClick={() => setSelectedBook(book)}>
+                        Подробнее
+                      </button>
+                      
+                      {fileUrl && (
+                        <a
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          download={!fileUrl.startsWith("http") ? book.pdfPath?.split("/").pop() : undefined}
+                        >
+                          Скачать PDF
+                        </a>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </section>
 
           {visibleCount < visibleBooks.length && (
@@ -1662,185 +1161,6 @@ export default function App() {
             </div>
           )}
         </>
-      )}
-
-      {editingBook && (
-        <div className="modal-backdrop" role="presentation">
-          <form className="modal" onSubmit={saveBook}>
-            <div className="topbar">
-              <h2>
-                {books.some((book) => book.id === editingBook.id)
-                  ? "Редактировать карточку"
-                  : "Новая карточка"}
-              </h2>
-              <button type="button" className="secondary" onClick={() => setEditingBook(null)}>
-                Закрыть
-              </button>
-            </div>
-
-            <div className="form-grid">
-              <label className="field">
-                <span>ID *</span>
-                <input
-                  value={editingBook.id}
-                  onChange={(e) => setEditingBook({ ...editingBook, id: e.target.value })}
-                  required
-                />
-              </label>
-              <label className="field">
-                <span>Название *</span>
-                <input
-                  value={editingBook.title}
-                  onChange={(e) => setEditingBook({ ...editingBook, title: e.target.value })}
-                  required
-                />
-              </label>
-              <label className="field">
-                <span>Авторы (через запятую)</span>
-                <input
-                  value={editingBook.authors.join(", ")}
-                  onChange={(e) => setEditingBook({ ...editingBook, authors: e.target.value.split(",") })}
-                />
-              </label>
-              <label className="field">
-                <span>Год</span>
-                <input
-                  type="number"
-                  value={editingBook.year ?? ""}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setEditingBook({ ...editingBook, year: val ? Number(val) : undefined });
-                  }}
-                />
-              </label>
-              <label className="field">
-                <span>Издательство</span>
-                <input
-                  value={editingBook.publisher ?? ""}
-                  onChange={(e) => setEditingBook({ ...editingBook, publisher: e.target.value })}
-                />
-              </label>
-              
-              <label className="field">
-                <span>Категория (Тема)</span>
-                <select
-                  value={editingBook.category ?? ""}
-                  onChange={(e) => setEditingBook({ ...editingBook, category: e.target.value })}
-                >
-                  <option value="">— Не выбрана —</option>
-                  {flatCategories.map((cat) => (
-                    <option key={cat.name} value={cat.name}>
-                      {cat.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="field full">
-                <span>Жанры (Формы)</span>
-                <div className="category-dropdown">
-                  <button
-                    type="button"
-                    className="category-dropdown-btn"
-                    onClick={() => setAdminGenreDropdownOpen((open) => !open)}
-                  >
-                    {editingBook.genres && editingBook.genres.length > 0
-                      ? `Выбрано жанров: ${editingBook.genres.length}`
-                      : "Выберите жанры"}
-                    <span aria-hidden="true">{adminGenreDropdownOpen ? "▲" : "▼"}</span>
-                  </button>
-                  {adminGenreDropdownOpen && (
-                    <div className="category-dropdown-menu">
-                      <div className="genres-dropdown-list">
-                        {GENRES.map((genre) => (
-                          <label key={genre} className="rubric-option" style={{ cursor: "pointer" }}>
-                            <input
-                              type="checkbox"
-                              checked={(editingBook.genres || []).includes(genre)}
-                              onChange={(e) => {
-                                const current = editingBook.genres || [];
-                                const next = e.target.checked
-                                  ? [...current, genre]
-                                  : current.filter((g) => g !== genre);
-                                setEditingBook({ ...editingBook, genres: next });
-                              }}
-                            />
-                            <span>{genre}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <label className="field">
-                <span>Стеллаж</span>
-                <input
-                  value={editingBook.rack ?? ""}
-                  onChange={(e) => setEditingBook({ ...editingBook, rack: e.target.value })}
-                />
-              </label>
-              <label className="field">
-                <span>Полка</span>
-                <input
-                  value={editingBook.shelf ?? ""}
-                  onChange={(e) => setEditingBook({ ...editingBook, shelf: e.target.value })}
-                />
-              </label>
-              <label className="field">
-                <span>Инвентарный номер</span>
-                <input
-                  value={editingBook.inventoryNumber ?? ""}
-                  onChange={(e) => setEditingBook({ ...editingBook, inventoryNumber: e.target.value })}
-                />
-              </label>
-              <label className="field">
-                <span>Путь или имя PDF</span>
-                <input
-                  value={editingBook.pdfPath ?? ""}
-                  onChange={(e) => setEditingBook({ ...editingBook, pdfPath: e.target.value })}
-                />
-              </label>
-
-              <label className="field full">
-                <span>Аннотация</span>
-                <textarea
-                  value={editingBook.annotation ?? ""}
-                  onChange={(e) => setEditingBook({ ...editingBook, annotation: e.target.value })}
-                />
-              </label>
-
-              <label className="field full">
-                <span>Выбрать PDF-файл для теста</span>
-                <input
-                  type="file"
-                  accept="application/pdf,.pdf"
-                  onChange={(e) => attachPdf(e.target.files?.[0])}
-                />
-              </label>
-
-              <label className="field full">
-                <span>
-                  <input
-                    type="checkbox"
-                    checked={editingBook.published !== false}
-                    onChange={(e) => setEditingBook({ ...editingBook, published: e.target.checked })}
-                    style={{ width: "auto", marginRight: 8 }}
-                  />
-                  Опубликована в каталоге
-                </span>
-              </label>
-            </div>
-
-            <p className="notice">
-              В локальном прототипе выбранный PDF доступен только до перезагрузки
-              страницы. Для постоянного хранения потребуется объектное хранилище и
-              серверная загрузка.
-            </p>
-            <button type="submit">Сохранить карточку</button>
-          </form>
-        </div>
       )}
 
       {selectedBook && (
@@ -1861,39 +1181,13 @@ export default function App() {
             <p><strong>Стеллаж:</strong> {selectedBook.rack || "—"}</p>
             <p><strong>Полка:</strong> {selectedBook.shelf || "—"}</p>
             <p><strong>Инвентарный номер:</strong> {selectedBook.inventoryNumber || "—"}</p>
-            {selectedBook.pdfPath && (
-              <a href={pdfHref(selectedBook)} target="_blank" rel="noreferrer">
+            {getPdfUrl(selectedBook) && (
+              <a href={getPdfUrl(selectedBook)} target="_blank" rel="noreferrer">
                 Открыть PDF
               </a>
             )}
           </section>
         </div>
-      )}
-
-      {!admin && (
-        <footer className="admin-footer">
-          <h3>Вход для сотрудников</h3>
-          <p className="muted" style={{ margin: "0 0 10px", fontSize: 14 }}>
-            Демонстрационный PIN: <code>museum-demo</code>. Это не настоящая
-            авторизация.
-          </p>
-          <form onSubmit={submitPin}>
-            <div className="controls">
-              <input
-                type="password"
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                placeholder="PIN для прототипа"
-                autoComplete="current-password"
-                style={{ maxWidth: 260 }}
-              />
-              <button type="submit">Войти</button>
-            </div>
-            {pinError && (
-              <p className="error" style={{ marginTop: 8 }}>{pinError}</p>
-            )}
-          </form>
-        </footer>
       )}
     </main>
   );
