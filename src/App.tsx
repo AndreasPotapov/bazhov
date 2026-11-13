@@ -1116,11 +1116,15 @@ export default function App() {
                       <span className="tag">{book.category || "Без категории"}</span>
                       {fileUrl && <PdfCover src={fileUrl} alt={`Обложка книги «${book.title}»`} />}
                       <div className="book-info">
-                        <h2>
+                          <h2>
                           <span
-                            type="button"
                             className="title-btn"
                             onClick={() => setSelectedBook(book)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') setSelectedBook(book);
+                            }}
                           >
                             {book.title}
                           </span>
