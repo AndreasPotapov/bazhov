@@ -365,17 +365,26 @@ h1 {
     grid-template-columns: 1fr;
   }
 }
-.book-info > h2 .title-btn {
-background: transparent;
-border: 0;
-padding: 0;
-margin: 0;
-color: inherit;
-font: inherit;
-font-family: var(--font-display);
-font-size: 1.6rem;
-font-weight: 700;
-line-height: 1.25;
-text-align: left;
-cursor: pointer;
-}
+        /* --- Название книги как кнопка (возвращаем вид обычного заголовка) --- */
+        .book-info > h2 .title-btn {
+          background: transparent !important;
+          color: var(--color-green) !important;
+          border: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          border-radius: 0 !important;
+          font-family: var(--font-display) !important;
+          font-size: 1.6rem !important;
+          font-weight: 700 !important;
+          line-height: 1.25 !important;
+          text-align: left;
+          cursor: pointer;
+          display: block;
+          width: 100%;
+        }
+
+        .book-info > h2 .title-btn:hover {
+          background: transparent !important;
+          color: var(--color-green) !important;
+          text-decoration: none !important;
+        }
