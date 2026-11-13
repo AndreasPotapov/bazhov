@@ -59,16 +59,6 @@ const GENRES: string[] = [
   "Эссе и литературные миниатюры", "Юмор и сатира",
 ];
 
-function flattenCategories(nodes: CategoryNode[], prefix = ""): { id: string; name: string; label: string }[] {
-  const result: { id: string; name: string; label: string }[] = [];
-  for (const node of nodes) {
-    const label = prefix ? `${prefix} → ${node.name}` : node.name;
-    result.push({ id: node.id, name: node.name, label });
-    if (node.children) result.push(...flattenCategories(node.children, label));
-  }
-  return result;
-}
-
 function findCategoryById(id: string): CategoryNode | null {
   for (const node of CATEGORIES) {
     if (node.id === id) return node;
