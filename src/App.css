@@ -367,20 +367,7 @@ h1 {
 }
         /* --- Название книги как кнопка (возвращаем вид обычного заголовка) --- */
         .book-info > h2 .title-btn {
-          background: transparent !important;
-          color: var(--color-green) !important;
-          border: none !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          border-radius: 0 !important;
-          font-family: var(--font-display) !important;
-          font-size: 1.6rem !important;
-          font-weight: 700 !important;
-          line-height: 1.25 !important;
-          text-align: left;
           cursor: pointer;
-          display: block;
-          width: 100%;
         }
 
         .book-info > h2 .title-btn:hover {

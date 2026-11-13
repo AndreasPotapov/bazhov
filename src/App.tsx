@@ -1117,13 +1117,13 @@ export default function App() {
                       {fileUrl && <PdfCover src={fileUrl} alt={`Обложка книги «${book.title}»`} />}
                       <div className="book-info">
                         <h2>
-                          <button
+                          <span
                             type="button"
                             className="title-btn"
                             onClick={() => setSelectedBook(book)}
                           >
                             {book.title}
-                          </button>
+                          </span>
                         </h2>
                         {book.authors.length > 0 && (<p><strong>Автор</strong>{book.authors.join(", ")}</p>)}
                         {book.year && (<p><strong>Год издания</strong>{book.year}</p>)}
