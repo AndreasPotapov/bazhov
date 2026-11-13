@@ -15,37 +15,25 @@ type CategoryNode = {
   children?: CategoryNode[];
 };
 
-// ---------- РУБРИКАТОР: КАТЕГОРИИ (ТЕМЫ) ----------
 const CATEGORIES: CategoryNode[] = [
   {
-    id: "fiction",
-    name: "Художественная литература",
+    id: "fiction", name: "Художественная литература",
     children: [
-      { id: "fiction-prose", name: "Проза" },
-      { id: "fiction-poetry", name: "Поэзия" },
-      { id: "fiction-drama", name: "Драматургия" },
-      { id: "fiction-genres", name: "Литература по жанрам и темам" },
-      { id: "fiction-folklore", name: "Устное народное творчество" },
-      { id: "fiction-children", name: "Литература для детей и юношества" },
+      { id: "fiction-prose", name: "Проза" }, { id: "fiction-poetry", name: "Поэзия" },
+      { id: "fiction-drama", name: "Драматургия" }, { id: "fiction-genres", name: "Литература по жанрам и темам" },
+      { id: "fiction-folklore", name: "Устное народное творчество" }, { id: "fiction-children", name: "Литература для детей и юношества" },
       { id: "fiction-world", name: "Литература народов мира" },
     ],
   },
   {
-    id: "nonfiction",
-    name: "Нехудожественная литература",
+    id: "nonfiction", name: "Нехудожественная литература",
     children: [
-      { id: "nonfiction-philosophy", name: "Философия и религия" },
-      { id: "nonfiction-psychology", name: "Психология и саморазвитие" },
-      { id: "nonfiction-society", name: "Общество и гуманитарные науки" },
-      { id: "nonfiction-history", name: "История" },
-      { id: "nonfiction-geography", name: "География и путешествия" },
-      { id: "nonfiction-science", name: "Естественные науки" },
-      { id: "nonfiction-tech", name: "Техника и технологии" },
-      { id: "nonfiction-medicine", name: "Здоровье и медицина" },
-      { id: "nonfiction-art", name: "Искусство и культура" },
-      { id: "nonfiction-language", name: "Язык и литература" },
-      { id: "nonfiction-home", name: "Дом и повседневная жизнь" },
-      { id: "nonfiction-sport", name: "Спорт и досуг" },
+      { id: "nonfiction-philosophy", name: "Философия и религия" }, { id: "nonfiction-psychology", name: "Психология и саморазвитие" },
+      { id: "nonfiction-society", name: "Общество и гуманитарные науки" }, { id: "nonfiction-history", name: "История" },
+      { id: "nonfiction-geography", name: "География и путешествия" }, { id: "nonfiction-science", name: "Естественные науки" },
+      { id: "nonfiction-tech", name: "Техника и технологии" }, { id: "nonfiction-medicine", name: "Здоровье и медицина" },
+      { id: "nonfiction-art", name: "Искусство и культура" }, { id: "nonfiction-language", name: "Язык и литература" },
+      { id: "nonfiction-home", name: "Дом и повседневная жизнь" }, { id: "nonfiction-sport", name: "Спорт и досуг" },
       { id: "nonfiction-business", name: "Бизнес и профессии" },
     ],
   },
@@ -55,7 +43,6 @@ const CATEGORIES: CategoryNode[] = [
   { id: "formats", name: "Издания по формату и доступности" },
 ];
 
-// ---------- РУБРИКАТОР: ЖАНРЫ (ФОРМЫ) ----------
 const GENRES: string[] = [
   "Альманахи и сборники", "Антологии поэзии", "Атласы и карты", "Баллады и сонеты",
   "Библиографические пособия", "Былины и эпос", "Военная проза", "Газеты",
@@ -72,7 +59,15 @@ const GENRES: string[] = [
   "Эссе и литературные миниатюры", "Юмор и сатира",
 ];
 
-
+function flattenCategories(nodes: CategoryNode[], prefix = ""): { id: string; name: string; label: string }[] {
+  const result: { id: string; name: string; label: string }[] = [];
+  for (const node of nodes) {
+    const label = prefix ? `${prefix} → ${node.name}` : node.name;
+    result.push({ id: node.id, name: node.name, label });
+    if (node.children) result.push(...flattenCategories(node.children, label));
+  }
+  return result;
+}
 
 function findCategoryById(id: string): CategoryNode | null {
   for (const node of CATEGORIES) {
@@ -90,9 +85,7 @@ function getCategoryNamesWithChildren(id: string): string[] {
   if (!node) return [];
   const names = [node.name];
   if (node.children) {
-    node.children.forEach((child) => {
-      names.push(...getCategoryNamesWithChildren(child.id));
-    });
+    node.children.forEach((child) => { names.push(...getCategoryNamesWithChildren(child.id)); });
   }
   return names;
 }
@@ -105,24 +98,16 @@ function getCategoryName(id: string): string {
 function normalizeBook(value: Partial<Book>): Book {
   const authors = Array.isArray(value.authors)
     ? value.authors.map((a) => String(a).trim()).filter(Boolean)
-    : String(value.authors ?? "")
-        .split(/[|;]/)
-        .map((a) => a.trim())
-        .filter(Boolean);
+    : String(value.authors ?? "").split(/[|;]/).map((a) => a.trim()).filter(Boolean);
 
-  const year =
-    typeof value.year === "number"
-      ? value.year
-      : value.year && /^\d{1,4}$/.test(String(value.year))
-        ? Number(value.year)
-        : undefined;
+  const year = typeof value.year === "number"
+    ? value.year
+    : value.year && /^\d{1,4}$/.test(String(value.year)) ? Number(value.year) : undefined;
 
   const legacyGenre = (value as Record<string, unknown>).genre;
   const genres = Array.isArray(value.genres)
     ? value.genres.map(String).filter(Boolean)
-    : typeof legacyGenre === "string"
-      ? [legacyGenre]
-      : [];
+    : typeof legacyGenre === "string" ? [legacyGenre] : [];
 
   return {
     id: String(value.id ?? "").trim(),
@@ -135,7 +120,7 @@ function normalizeBook(value: Partial<Book>): Book {
     annotation: String(value.annotation ?? "").trim(),
     rack: String(value.rack ?? "").trim(),
     shelf: String(value.shelf ?? "").trim(),
-    inventoryNumber: String(value.id ?? "").trim(), // всегда равен id
+    inventoryNumber: String(value.id ?? "").trim(),
     pdfPath: String(value.pdfPath ?? "").trim(),
     pdfUrl: String(value.pdfUrl ?? "").trim(),
     pdfFileName: String(value.pdfFileName ?? "").trim(),
@@ -145,25 +130,14 @@ function normalizeBook(value: Partial<Book>): Book {
 
 function stemText(text: string): string[] {
   const normalized = text.toLocaleLowerCase("ru-RU").replaceAll("ё", "е");
-  return normalized
-    .split(/[^a-zа-я0-9]+/i)
-    .filter(Boolean)
-    .map((word) => russian(word));
+  return normalized.split(/[^a-zа-я0-9]+/i).filter(Boolean).map((word) => russian(word));
 }
 
 function bookStems(book: Book): string[] {
   const text = [
-    book.title,
-    ...book.authors,
-    book.publisher,
-    book.category,
-    ...(book.genres || []),
-    book.annotation,
-    book.inventoryNumber,
-    book.year?.toString(),
-  ]
-    .filter(Boolean)
-    .join(" ");
+    book.title, ...book.authors, book.publisher, book.category,
+    ...(book.genres || []), book.annotation, book.inventoryNumber, book.year?.toString(),
+  ].filter(Boolean).join(" ");
   return stemText(text);
 }
 
@@ -174,7 +148,17 @@ function matchesSearch(book: Book, query: string): boolean {
   return queryStems.every((stem) => bookStemList.includes(stem));
 }
 
-// ---------- PDF-ОБЛОЖКА ----------
+function getPdfUrl(book: Book): string {
+  if (book.pdfUrl && book.pdfUrl.startsWith("http")) return book.pdfUrl;
+  if (book.pdfUrl) return `${import.meta.env.BASE_URL}${book.pdfUrl.replace(/^\//, "")}`;
+  if (book.pdfPath) {
+    if (book.pdfPath.startsWith("http")) return book.pdfPath;
+    return `${import.meta.env.BASE_URL}${book.pdfPath.replace(/^\//, "")}`;
+  }
+  return "";
+}
+
+// --- PDF-ОБЛОЖКА ---
 const coverCache = new Map<string, string>();
 
 function PdfCover({ src, alt }: { src: string; alt: string }) {
@@ -188,12 +172,10 @@ function PdfCover({ src, alt }: { src: string; alt: string }) {
     (async () => {
       try {
         const resolved = src.startsWith("http") || src.startsWith("blob:") || src.startsWith("/")
-            ? src
-            : `${import.meta.env.BASE_URL}${src}`;
+          ? src : `${import.meta.env.BASE_URL}${src}`;
 
         const pdf = await pdfjsLib.getDocument({
-          url: resolved,
-          wasmUrl: `${import.meta.env.BASE_URL}pdfjs/wasm/`,
+          url: resolved, wasmUrl: `${import.meta.env.BASE_URL}pdfjs/wasm/`,
         }).promise;
 
         const page = await pdf.getPage(1);
@@ -209,7 +191,6 @@ function PdfCover({ src, alt }: { src: string; alt: string }) {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         await page.render({ canvasContext: ctx, viewport, canvas }).promise;
-        
         const data = canvas.toDataURL("image/jpeg", 0.85);
         coverCache.set(src, data);
 
@@ -228,7 +209,7 @@ function PdfCover({ src, alt }: { src: string; alt: string }) {
       {dataUrl ? (
         <img className="cover-image" src={dataUrl} alt={alt} />
       ) : (
-        <span className="cover-placeholder" style={{ color: failed ? "#a12f2f" : "#62675f", fontWeight: failed ? 600 : 400 }}>
+        <span className="cover-placeholder" style={{ color: failed ? "var(--color-error)" : "var(--color-muted)", fontWeight: failed ? 600 : 400 }}>
           {failed ? "Не удалось загрузить обложку" : "Загрузка обложки…"}
         </span>
       )}
@@ -237,36 +218,37 @@ function PdfCover({ src, alt }: { src: string; alt: string }) {
 }
 
 export default function App() {
-  // Данные загружаются ОДИН РАЗ из файла и больше не сохраняются в localStorage
   const books = useMemo(() => seedBooks.map(normalizeBook), []);
-  
+
   const [query, setQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  
-  // Фильтры
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [yearRange, setYearRange] = useState<[number, number] | null>(null);
-  
-  // Выпадающие списки
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [expandedCategoryIds, setExpandedCategoryIds] = useState<string[]>([]);
   const [genreDropdownOpen, setGenreDropdownOpen] = useState(false);
-
-  // Модальное окно
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  
-  // Пагинация
   const [visibleCount, setVisibleCount] = useState(5);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState<"catalog" | "about" | "download">("catalog");
+
+  // Тема: загружаем и сразу применяем атрибут
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    const saved = localStorage.getItem("theme");
+    const t = saved === "dark" ? "dark" : "light";
+    if (typeof document !== "undefined") document.documentElement.setAttribute("data-theme", t);
+    return t;
+  });
 
   useEffect(() => {
-    setVisibleCount(5);
-  }, [query, selectedCategory, selectedGenres, yearRange]);
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
-  const filterableBooks = useMemo(
-    () => books.filter((book) => book.published !== false),
-    [books]
-  );
+  useEffect(() => { setVisibleCount(5); }, [query, selectedCategory, selectedGenres, yearRange]);
+
+  const filterableBooks = useMemo(() => books.filter((book) => book.published !== false), [books]);
 
   const yearBounds = useMemo(() => {
     const years = filterableBooks.map((book) => book.year).filter((year): year is number => typeof year === "number");
@@ -277,61 +259,69 @@ export default function App() {
   const activeFilterCount = (selectedCategory ? 1 : 0) + (selectedGenres.length > 0 ? 1 : 0) + (yearRange ? 1 : 0);
 
   function toggleGenre(genre: string) {
-    setSelectedGenres((current) =>
-      current.includes(genre) ? current.filter((g) => g !== genre) : [...current, genre],
-    );
+    setSelectedGenres((current) => current.includes(genre) ? current.filter((g) => g !== genre) : [...current, genre]);
   }
 
   function toggleCategoryExpand(id: string, e: React.MouseEvent) {
     e.stopPropagation();
-    setExpandedCategoryIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+    setExpandedCategoryIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   }
 
   const visibleBooks = useMemo(() => {
     return books.filter((book) => {
       if (book.published === false) return false;
-
       if (selectedCategory) {
         const selectedNames = getCategoryNamesWithChildren(selectedCategory);
         if (!selectedNames.includes(book.category || "")) return false;
       }
-
       if (selectedGenres.length > 0) {
         const bookGenres = book.genres || [];
-        const hasMatch = selectedGenres.some((g) => bookGenres.includes(g));
-        if (!hasMatch) return false;
+        if (!selectedGenres.some((g) => bookGenres.includes(g))) return false;
       }
-
       if (yearRange) {
-        if (typeof book.year !== "number" || book.year < yearRange[0] || book.year > yearRange[1]) {
-          return false;
-        }
+        if (typeof book.year !== "number" || book.year < yearRange[0] || book.year > yearRange[1]) return false;
       }
-
       return matchesSearch(book, query);
     });
   }, [books, selectedCategory, selectedGenres, yearRange, query]);
 
-  // Функция получения правильной ссылки на PDF
-   function getPdfUrl(book: Book): string {
-    // Если ссылка уже полная (из Yandex Cloud) — возвращаем как есть
-    if (book.pdfUrl && book.pdfUrl.startsWith("http")) {
-      return book.pdfUrl;
-    }
-    // Если ссылка относительная — добавляем базовый путь
-    if (book.pdfUrl) {
-      return `${import.meta.env.BASE_URL}${book.pdfUrl.replace(/^\//, "")}`;
-    }
-    // Если pdfUrl нет, пробуем pdfPath
-    if (book.pdfPath) {
-      return `${import.meta.env.BASE_URL}${book.pdfPath.replace(/^\//, "")}`;
-    }
-    return "";
-  }
+  // --- "УДИВИТЕ МЕНЯ" ---
+  const handleSurprise = () => {
+    if (filterableBooks.length === 0) return;
+    const randomBook = filterableBooks[Math.floor(Math.random() * filterableBooks.length)];
+    setCurrentPage("catalog");
+    setSelectedBook(randomBook);
+    setMenuOpen(false);
+  };
 
-  // ---------- РЕНДЕР ДЕРЕВА КАТЕГОРИЙ ----------
+  // --- СКАЧАТЬ КАТАЛОГ В CSV ---
+  const handleDownloadCsv = () => {
+    const headers = [
+      "ID", "Название", "Автор", "Год", "Издательство", "Категория",
+      "Жанры", "Аннотация", "Шкаф", "Полка", "Инвентарный номер", "Ссылка на PDF",
+    ];
+    const rows = books.map((b) => [
+      b.id, b.title, b.authors.join("; "), b.year ?? "",
+      b.publisher ?? "", b.category ?? "", (b.genres ?? []).join("; "),
+      b.annotation ?? "", b.rack ?? "", b.shelf ?? "",
+      b.inventoryNumber ?? "", getPdfUrl(b),
+    ]);
+
+    const escapeCsv = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+    const csv = [headers, ...rows].map((row) => row.map(escapeCsv).join(",")).join("\r\n");
+
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `bazhov-library-catalog-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // --- РЕНДЕР ДЕРЕВА КАТЕГОРИЙ ---
   function renderCategoryNode(node: CategoryNode, depth = 0) {
     const hasChildren = node.children && node.children.length > 0;
     const isSelected = selectedCategory === node.id;
@@ -341,26 +331,14 @@ export default function App() {
       <div key={node.id} style={{ marginLeft: depth * 12 }}>
         <div className="category-row">
           {hasChildren ? (
-            <button
-              type="button"
-              className="expand-btn"
-              onClick={(e) => toggleCategoryExpand(node.id, e)}
-              aria-label={isExpanded ? "Свернуть" : "Развернуть"}
-            >
+            <button type="button" className="expand-btn" onClick={(e) => toggleCategoryExpand(node.id, e)} aria-label={isExpanded ? "Свернуть" : "Развернуть"}>
               {isExpanded ? "▼" : "►"}
             </button>
-          ) : (
-            <span className="expand-spacer" />
-          )}
+          ) : (<span className="expand-spacer" />)}
           <label className="rubric-option" style={{ flex: 1, cursor: "pointer" }}>
             <input
-              type="radio"
-              name="category-filter"
-              checked={isSelected}
-              onChange={() => {
-                setSelectedCategory(isSelected ? "" : node.id);
-                setCategoryDropdownOpen(false);
-              }}
+              type="radio" name="category-filter" checked={isSelected}
+              onChange={() => { setSelectedCategory(isSelected ? "" : node.id); setCategoryDropdownOpen(false); }}
             />
             <span>{node.name}</span>
           </label>
@@ -380,33 +358,26 @@ export default function App() {
         @font-face {
           font-family: "Wremena";
           src: url("${import.meta.env.BASE_URL}fonts/Wremena Bold.otf") format("opentype");
-          font-weight: 700;
-          font-style: normal;
-          font-display: swap;
+          font-weight: 700; font-style: normal; font-display: swap;
         }
-
         @font-face {
           font-family: "Moniqa";
           src: url("${import.meta.env.BASE_URL}fonts/Moniqa-SemBdCondHeading.otf") format("opentype");
-          font-weight: 600;
-          font-style: normal;
-          font-display: swap;
+          font-weight: 600; font-style: normal; font-display: swap;
         }
-
         @font-face {
           font-family: "Cochin";
           src: url("${import.meta.env.BASE_URL}fonts/Cochin.ttc");
-          font-weight: 500;
-          font-style: normal;
-          font-display: swap;
+          font-weight: 500; font-style: normal; font-display: swap;
         }
-        /* ... остальные стили ... */
 
-        :root {
+        /* --- СВЕТЛАЯ ТЕМА (по умолчанию) --- */
+        :root, [data-theme="light"] {
           --color-green: #31563f;
           --color-green-dark: #254531;
           --color-green-light: #f0f3ef;
           --color-bg: #f6f5f1;
+          --color-surface: #ffffff;
           --color-text: #252b25;
           --color-muted: #62675f;
           --color-border: #e6e3da;
@@ -415,6 +386,21 @@ export default function App() {
           --color-error: #a12f2f;
           --font-display: "Wremena", Georgia, "Times New Roman", serif;
           --font-body: "Cochin", Georgia, system-ui, -apple-system, serif;
+        }
+
+        /* --- ТЁМНАЯ ТЕМА --- */
+        [data-theme="dark"] {
+          --color-green: #31563f;
+          --color-green-dark: #4a7a5e;
+          --color-green-light: #2a3a30;
+          --color-bg: #1e1e1e;
+          --color-surface: #2a2826;
+          --color-text: #edece8;
+          --color-muted: #a8a5a0;
+          --color-border: #3a3836;
+          --color-danger: #d35f5f;
+          --color-warning: #e0a04a;
+          --color-error: #e78080;
         }
 
         * { box-sizing: border-box; }
@@ -427,16 +413,13 @@ export default function App() {
           font-size: 16px;
           line-height: 1.6;
           -webkit-font-smoothing: antialiased;
+          transition: background 0.2s, color 0.2s;
         }
 
         button, input, select, textarea { font: inherit; }
         button { cursor: pointer; }
 
-        .app {
-          max-width: 1120px;
-          margin: 0 auto;
-          padding: 32px 24px 80px;
-        }
+        .app { max-width: 1120px; margin: 0 auto; padding: 32px 24px 80px; }
 
         .topbar {
           display: flex;
@@ -462,10 +445,87 @@ export default function App() {
         .brand .muted { font-size: 0.95rem; }
         .muted { color: var(--color-muted); }
 
+        /* --- Бургер-кнопка --- */
+        .burger-btn {
+          background: transparent;
+          color: var(--color-green);
+          border: 1.5px solid var(--color-green);
+          border-radius: 6px;
+          padding: 8px 12px;
+          font-size: 1.4rem;
+          line-height: 1;
+          min-width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.15s, color 0.15s;
+        }
+
+        .burger-btn:hover { background: var(--color-green); color: #fff; }
+
+        /* --- Выдвижное меню --- */
+        .menu-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.45);
+          z-index: 100;
+          animation: fadeIn 0.2s ease-out;
+        }
+
+        .side-menu {
+          position: fixed;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          width: 320px;
+          max-width: 88vw;
+          background: var(--color-surface);
+          z-index: 101;
+          padding: 20px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          box-shadow: -4px 0 24px rgba(0, 0, 0, 0.2);
+          animation: slideIn 0.25s ease-out;
+        }
+
+        .side-menu .menu-close {
+          align-self: flex-end;
+          background: transparent;
+          color: var(--color-text);
+          border: none;
+          font-size: 1.6rem;
+          padding: 4px 10px;
+          line-height: 1;
+          margin-bottom: 12px;
+          border-radius: 4px;
+        }
+
+        .side-menu .menu-close:hover { background: var(--color-bg); }
+
+        .side-menu .menu-item {
+          background: transparent;
+          color: var(--color-text);
+          border: none;
+          text-align: left;
+          padding: 14px 16px;
+          font-size: 1rem;
+          border-radius: 6px;
+          font-family: var(--font-body);
+          transition: background 0.15s;
+        }
+
+        .side-menu .menu-item:hover { background: var(--color-bg); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+        /* --- Панели / страницы --- */
         .panel {
           padding: 24px;
           margin: 0 0 32px;
-          background: #fff;
+          background: var(--color-surface);
           border: 1px solid var(--color-border);
           border-radius: 4px;
         }
@@ -481,6 +541,22 @@ export default function App() {
 
         .panel p { margin: 0; }
 
+        .page-title {
+          font-family: var(--font-display);
+          font-size: 2rem;
+          font-weight: 700;
+          color: var(--color-green);
+          margin: 0 0 20px;
+        }
+
+        .page-content p {
+          font-size: 1rem;
+          line-height: 1.7;
+          color: var(--color-text);
+          margin: 0 0 16px;
+        }
+
+        /* --- Поиск --- */
         .search-area { margin-bottom: 40px; }
 
         .search-line {
@@ -492,21 +568,21 @@ export default function App() {
 
         .search-input {
           flex: 1 1 320px;
+          min-width: 0;
           min-height: 56px;
           padding: 0 20px;
           border: 1.5px solid var(--color-border);
           border-radius: 6px;
-          background: #fff;
+          background: var(--color-surface);
+          color: var(--color-text);
           font-size: 1rem;
           font-family: var(--font-body);
           outline: none;
           transition: border-color 0.15s, box-shadow 0.15s;
         }
 
-        .search-input:focus {
-          border-color: var(--color-green);
-          box-shadow: 0 0 0 3px rgb(49 86 63 / 10%);
-        }
+        .search-input:focus { border-color: var(--color-green); box-shadow: 0 0 0 3px rgb(49 86 63 / 20%); }
+        .search-input::placeholder { color: var(--color-muted); }
 
         .filters-button {
           padding: 0 22px;
@@ -520,18 +596,15 @@ export default function App() {
           font-size: 0.95rem;
           white-space: nowrap;
           transition: background 0.15s, color 0.15s;
+          flex-shrink: 0;
         }
 
-        .filters-button:hover,
-        .filters-button.active {
-          background: var(--color-green);
-          color: #fff;
-        }
+        .filters-button:hover, .filters-button.active { background: var(--color-green); color: #fff; }
 
         .filters-panel {
           margin-top: 16px;
           padding: 24px;
-          background: #fff;
+          background: var(--color-surface);
           border: 1px solid var(--color-border);
           border-radius: 6px;
           display: grid;
@@ -554,7 +627,7 @@ export default function App() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: #fff;
+          background: var(--color-surface);
           color: var(--color-text);
           border: 1.5px solid var(--color-border);
           padding: 10px 14px;
@@ -563,10 +636,7 @@ export default function App() {
           font-size: 0.95rem;
         }
 
-        .category-dropdown-btn:hover {
-          background: #fff;
-          border-color: var(--color-green);
-        }
+        .category-dropdown-btn:hover { border-color: var(--color-green); }
 
         .category-dropdown-menu {
           position: absolute;
@@ -574,27 +644,18 @@ export default function App() {
           left: 0;
           right: 0;
           z-index: 10;
-          background: #fff;
+          background: var(--color-surface);
           border: 1.5px solid var(--color-border);
           border-radius: 6px;
           max-height: 300px;
           overflow-y: auto;
           padding: 12px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        .genres-dropdown-list {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
+        .genres-dropdown-list { display: flex; flex-direction: column; gap: 8px; }
 
-        .category-row {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 2px 0;
-        }
+        .category-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
 
         .expand-btn {
           background: transparent;
@@ -607,35 +668,17 @@ export default function App() {
           justify-content: center;
           color: var(--color-muted);
           font-size: 10px;
-          cursor: pointer;
           border-radius: 4px;
         }
 
-        .expand-btn:hover {
-          background: var(--color-bg);
-          color: var(--color-green);
-        }
+        .expand-btn:hover { background: var(--color-bg); color: var(--color-green); }
 
         .expand-spacer { width: 24px; }
 
-        .rubric-option {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 0.95rem;
-        }
+        .rubric-option { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+        .rubric-option input { width: auto; margin: 0; accent-color: var(--color-green); }
 
-        .rubric-option input {
-          width: auto;
-          margin: 0;
-          accent-color: var(--color-green);
-        }
-
-        .rubric-children {
-          display: grid;
-          gap: 4px;
-          margin-top: 4px;
-        }
+        .rubric-children { display: grid; gap: 4px; margin-top: 4px; }
 
         .year-values {
           display: flex;
@@ -648,40 +691,20 @@ export default function App() {
 
         .year-slider-wrap { padding: 8px 4px; }
 
-        .rc-slider-rail {
-          background: var(--color-border) !important;
-          height: 4px;
-        }
-
-        .rc-slider-track {
-          background: var(--color-green) !important;
-          height: 4px;
-        }
-
+        .rc-slider-rail { background: var(--color-border) !important; height: 4px; }
+        .rc-slider-track { background: var(--color-green) !important; height: 4px; }
         .rc-slider-handle {
-          width: 18px !important;
-          height: 18px !important;
-          margin-top: -7px !important;
-          border: 2px solid var(--color-green) !important;
-          background: #fff !important;
-          opacity: 1 !important;
+          width: 18px !important; height: 18px !important; margin-top: -7px !important;
+          border: 2px solid var(--color-green) !important; background: #fff !important; opacity: 1 !important;
         }
-
-        .rc-slider-handle:hover,
-        .rc-slider-handle:focus,
-        .rc-slider-handle-dragging {
+        .rc-slider-handle:hover, .rc-slider-handle:focus, .rc-slider-handle-dragging {
           border-color: var(--color-green-dark) !important;
-          box-shadow: 0 0 0 4px rgb(49 86 63 / 15%) !important;
+          box-shadow: 0 0 0 4px rgb(49 86 63 / 25%) !important;
         }
 
-        .filter-actions {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-          padding-top: 12px;
-          border-top: 1px solid var(--color-border);
-        }
+        .filter-actions { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--color-border); }
 
+        /* --- Кнопки --- */
         button {
           border: 0;
           border-radius: 6px;
@@ -701,21 +724,14 @@ export default function App() {
           border: 1px solid var(--color-green);
         }
 
-        button.secondary:hover {
-          background: var(--color-green);
-          color: #fff;
-        }
+        button.secondary:hover { background: var(--color-green); color: #fff; }
 
-        /* ---------- Catalog & Horizontal Cards ---------- */
-        .grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 20px;
-        }
+        /* --- Каталог --- */
+        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
 
         .book-card {
           padding: 24px;
-          background: #fff;
+          background: var(--color-surface);
           border: 1px solid var(--color-border);
           border-radius: 6px;
           display: grid;
@@ -725,10 +741,7 @@ export default function App() {
           transition: box-shadow 0.2s, transform 0.2s;
         }
 
-        .book-card:hover {
-          box-shadow: 0 6px 24px rgb(0 0 0 / 6%);
-          transform: translateY(-2px);
-        }
+        .book-card:hover { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08); transform: translateY(-2px); }
 
         .tag {
           grid-column: 2;
@@ -751,30 +764,18 @@ export default function App() {
           grid-row: 2;
           width: 140px;
           aspect-ratio: 3 / 4;
-          background: #fff;
+          background: var(--color-surface);
           border: 1px solid var(--color-border);
           border-radius: 4px;
           overflow: hidden;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 2px 8px rgb(0 0 0 / 4%);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         }
 
-        .cover-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          display: block;
-        }
-
-        .cover-placeholder {
-          color: var(--color-muted);
-          font-size: 0.8rem;
-          text-align: center;
-          padding: 8px;
-          line-height: 1.4;
-        }
+        .cover-image { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .cover-placeholder { font-size: 0.8rem; text-align: center; padding: 8px; line-height: 1.4; }
 
         .book-info {
           grid-column: 2;
@@ -786,11 +787,7 @@ export default function App() {
           align-content: start;
         }
 
-        .book-info > h2,
-        .book-info > .book-annotation,
-        .book-info > .card-actions {
-          grid-column: 1 / -1;
-        }
+        .book-info > h2, .book-info > .book-annotation, .book-info > .card-actions { grid-column: 1 / -1; }
 
         .book-info > h2 {
           margin: 0 0 8px;
@@ -801,13 +798,7 @@ export default function App() {
           color: var(--color-green);
         }
 
-        .book-info p {
-          margin: 0;
-          font-size: 0.95rem;
-          line-height: 1.5;
-          color: var(--color-text);
-        }
-
+        .book-info p { margin: 0; font-size: 0.95rem; line-height: 1.5; color: var(--color-text); }
         .book-info p strong {
           display: block;
           font-weight: 600;
@@ -818,12 +809,7 @@ export default function App() {
           margin-bottom: 4px;
         }
 
-        .book-info .book-annotation {
-          margin-top: 8px;
-          color: var(--color-muted);
-          font-size: 0.95rem;
-          line-height: 1.5;
-        }
+        .book-info .book-annotation { margin-top: 8px; color: var(--color-muted); font-size: 0.95rem; line-height: 1.5; }
 
         .card-actions {
           display: flex;
@@ -847,24 +833,12 @@ export default function App() {
           transition: background 0.15s, color 0.15s;
         }
 
-        .card-actions a:hover {
-          background: var(--color-green);
-          color: #fff;
-        }
+        .card-actions a:hover { background: var(--color-green); color: #fff; }
 
-        .load-more-container {
-          display: flex;
-          justify-content: center;
-          margin-top: 32px;
-          margin-bottom: 16px;
-        }
+        .load-more-container { display: flex; justify-content: center; margin-top: 32px; margin-bottom: 16px; }
+        .load-more-container button { padding: 12px 32px; font-size: 1rem; min-width: 200px; }
 
-        .load-more-container button {
-          padding: 12px 32px;
-          font-size: 1rem;
-          min-width: 200px;
-        }
-
+        /* --- Модальное окно --- */
         .modal-backdrop {
           position: fixed;
           inset: 0;
@@ -872,7 +846,7 @@ export default function App() {
           display: grid;
           place-items: center;
           padding: 16px;
-          background: rgb(0 0 0 / 45%);
+          background: rgba(0, 0, 0, 0.5);
           backdrop-filter: blur(2px);
         }
 
@@ -881,17 +855,13 @@ export default function App() {
           max-height: 90vh;
           overflow: auto;
           padding: 32px;
-          background: #fff;
+          background: var(--color-surface);
           border: 1px solid var(--color-border);
           border-radius: 8px;
-          box-shadow: 0 20px 60px rgb(0 0 0 / 20%);
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
-        .modal .topbar {
-          padding-bottom: 14px;
-          margin-bottom: 20px;
-          border-bottom: 1px solid var(--color-border);
-        }
+        .modal .topbar { padding-bottom: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); }
 
         .modal h2 {
           margin: 0;
@@ -901,7 +871,7 @@ export default function App() {
           color: var(--color-green);
         }
 
-        .modal p { margin: 0 0 10px; font-size: 0.95rem; line-height: 1.55; }
+        .modal p { margin: 0 0 10px; font-size: 0.95rem; line-height: 1.55; color: var(--color-text); }
         .modal p strong {
           font-weight: 700;
           color: var(--color-muted);
@@ -911,23 +881,42 @@ export default function App() {
           margin-right: 6px;
         }
 
-        .modal a {
-          color: var(--color-green);
-          font-weight: 500;
-          text-decoration: none;
-          border-bottom: 1px solid var(--color-green);
-        }
+        .modal a { color: var(--color-green); font-weight: 500; text-decoration: none; border-bottom: 1px solid var(--color-green); }
 
+        /* --- Мобильная версия --- */
         @media (max-width: 700px) {
           .app { padding: 20px 16px 60px; }
           .topbar { margin-bottom: 24px; padding-bottom: 16px; }
-          
+
           .book-card { grid-template-columns: 1fr; gap: 16px; }
           .tag { grid-column: 1; grid-row: auto; }
           .cover-wrap { grid-column: 1; grid-row: auto; justify-self: center; width: 140px; }
           .book-info { grid-column: 1; grid-row: auto; width: 100%; }
 
-          .search-line { flex-direction: column; align-items: stretch; }
+          /* --- ИСПРАВЛЕНИЕ: поиск и кнопка в одну строку, компактно --- */
+          .search-line {
+            flex-direction: row;
+            align-items: stretch;
+            flex-wrap: nowrap;
+            gap: 8px;
+          }
+
+          .search-input {
+            flex: 1 1 0;
+            min-width: 0;
+            min-height: 46px;
+            padding: 0 12px;
+            font-size: 0.9rem;
+          }
+
+          .search-input::placeholder { font-size: 0.82rem; }
+
+          .filters-button {
+            min-height: 46px;
+            padding: 0 12px;
+            font-size: 0.82rem;
+          }
+
           .modal { padding: 24px; }
           .filters-panel { padding: 20px; }
         }
@@ -938,237 +927,203 @@ export default function App() {
           <h1>Электронная библиотека</h1>
           <div className="muted">Книжная коллекция дома-музея П. П. Бажова</div>
         </div>
+        <button className="burger-btn" onClick={() => setMenuOpen(true)} aria-label="Открыть меню">☰</button>
       </header>
 
-      <section className="panel">
-        <strong>Каталог для посетителей</strong>
-        <p className="muted">
-          Используйте поиск по библиографическим данным или откройте фильтры,
-          чтобы уточнить категорию, жанр и год издания.
-        </p>
-      </section>
-
-      <section className="search-area" aria-label="Поиск и фильтры">
-        <div className="search-line">
-          <input
-            className="search-input"
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Поиск по названию, автору, году, издательству, жанру…"
-            aria-label="Поиск по каталогу"
-          />
-          <button
-            type="button"
-            className={`filters-button ${activeFilterCount > 0 ? "active" : ""}`}
-            onClick={() => setFiltersOpen((open) => !open)}
-          >
-            Фильтры
-            {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-            <span aria-hidden="true" style={{ marginLeft: 6 }}>
-              {filtersOpen ? "▲" : "▼"}
-            </span>
-          </button>
-        </div>
-
-        {filtersOpen && (
-          <div className="filters-panel">
-            <div className="filter-section">
-              <h3>Категория</h3>
-              <div className="category-dropdown">
-                <button
-                  type="button"
-                  className="category-dropdown-btn"
-                  onClick={() => setCategoryDropdownOpen((open) => !open)}
-                >
-                  {selectedCategory ? getCategoryName(selectedCategory) : "Все категории"}
-                  <span aria-hidden="true">{categoryDropdownOpen ? "▲" : "▼"}</span>
-                </button>
-                {categoryDropdownOpen && (
-                  <div className="category-dropdown-menu">
-                    <label className="rubric-option" style={{ marginBottom: 8, paddingBottom: 8, borderBottom: "1px solid var(--color-border)" }}>
-                      <input
-                        type="radio"
-                        name="category-filter"
-                        checked={selectedCategory === ""}
-                        onChange={() => {
-                          setSelectedCategory("");
-                          setCategoryDropdownOpen(false);
-                        }}
-                      />
-                      <span>Все категории</span>
-                    </label>
-                    {CATEGORIES.map((node) => renderCategoryNode(node))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="filter-section">
-              <h3>Жанры</h3>
-              <div className="category-dropdown">
-                <button
-                  type="button"
-                  className="category-dropdown-btn"
-                  onClick={() => setGenreDropdownOpen((open) => !open)}
-                >
-                  {selectedGenres.length > 0 ? `Выбрано жанров: ${selectedGenres.length}` : "Все жанры"}
-                  <span aria-hidden="true">{genreDropdownOpen ? "▲" : "▼"}</span>
-                </button>
-                {genreDropdownOpen && (
-                  <div className="category-dropdown-menu">
-                    <div className="genres-dropdown-list">
-                      {GENRES.map((genre) => (
-                        <label key={genre} className="rubric-option" style={{ cursor: "pointer" }}>
-                          <input
-                            type="checkbox"
-                            checked={selectedGenres.includes(genre)}
-                            onChange={() => toggleGenre(genre)}
-                          />
-                          <span>{genre}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {yearBounds && (
-              <div className="filter-section">
-                <h3>Год издания</h3>
-                <div className="year-values">
-                  <span>От: {yearRange?.[0] ?? yearBounds.min}</span>
-                  <span>До: {yearRange?.[1] ?? yearBounds.max}</span>
-                </div>
-                <div className="year-slider-wrap">
-                  <Slider
-                    range
-                    min={yearBounds.min}
-                    max={yearBounds.max}
-                    value={yearRange ?? [yearBounds.min, yearBounds.max]}
-                    onChange={(value) => {
-                      if (Array.isArray(value) && value.length === 2) {
-                        setYearRange([value[0], value[1]]);
-                      }
-                    }}
-                    allowCross={false}
-                  />
-                </div>
-                <small className="muted">
-                  Доступный диапазон: {yearBounds.min}–{yearBounds.max}
-                </small>
-              </div>
-            )}
-
-            <div className="filter-actions">
-              <button
-                type="button"
-                className="secondary"
-                onClick={() => {
-                  setSelectedCategory("");
-                  setSelectedGenres([]);
-                  setYearRange(null);
-                }}
-              >
-                Сбросить фильтры
-              </button>
-            </div>
-          </div>
-        )}
-      </section>
-
-      <p className="muted">Найдено книг: {visibleBooks.length}</p>
-
-      {visibleBooks.length === 0 ? (
-        <section className="panel">По вашему запросу ничего не найдено.</section>
-      ) : (
+      {/* --- БОКОВОЕ МЕНЮ --- */}
+      {menuOpen && (
         <>
-          <section className="grid">
-            {visibleBooks.slice(0, visibleCount).map((book) => {
-              const fileUrl = getPdfUrl(book);
-              return (
-                <article className="book-card" key={book.id}>
-                  <span className="tag">{book.category || "Без категории"}</span>
-                  
-                  {fileUrl && (
-                    <PdfCover
-                      src={fileUrl}
-                      alt={`Обложка книги «${book.title}»`}
-                    />
-                  )}
+          <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
+          <nav className="side-menu" aria-label="Главное меню">
+            <button className="menu-close" onClick={() => setMenuOpen(false)} aria-label="Закрыть меню">×</button>
+            <button className="menu-item" onClick={() => { setCurrentPage("catalog"); setMenuOpen(false); }}>📚 Каталог</button>
+            <button className="menu-item" onClick={() => { setCurrentPage("about"); setMenuOpen(false); }}>ℹ️ О проекте</button>
+            <button className="menu-item" onClick={() => { setCurrentPage("download"); setMenuOpen(false); }}>📥 Скачать каталог</button>
+            <button className="menu-item" onClick={handleSurprise}>🎲 Удивите меня</button>
+            <button className="menu-item" onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
+              {theme === "light" ? "🌙 Тёмная тема" : "☀️ Светлая тема"}
+            </button>
+          </nav>
+        </>
+      )}
 
-                  <div className="book-info">
-                    <h2>{book.title}</h2>
+      {/* --- СТРАНИЦА: О ПРОЕКТЕ --- */}
+      {currentPage === "about" && (
+        <section className="panel">
+          <h1 className="page-title">О проекте</h1>
+          <div className="page-content">
+            <p>Здесь будет текст, описывающий работу сайта, историю коллекции и цели проекта.</p>
+            <p className="muted">(Текст будет добавлен позже)</p>
+          </div>
+        </section>
+      )}
 
-                    {book.authors.length > 0 && (
-                      <p><strong>Автор</strong>{book.authors.join(", ")}</p>
-                    )}
-                    
-                    {book.year && (
-                      <p><strong>Год издания</strong>{book.year}</p>
-                    )}
-                    
-                    {book.publisher && (
-                      <p><strong>Издательство</strong>{book.publisher}</p>
-                    )}
-                    
-                    {book.genres && book.genres.length > 0 && (
-                      <p><strong>Жанры</strong>{book.genres.join(", ")}</p>
-                    )}
-                    
-                    {(book.rack || book.shelf) && (
-                      <p><strong>Место хранения</strong>Шкаф № {book.rack || "—"}, полка № {book.shelf || "—"}</p>
-                    )}
-                    
-                    {book.inventoryNumber && (
-                      <p><strong>Инвентарный номер</strong>{book.inventoryNumber}</p>
-                    )}
+      {/* --- СТРАНИЦА: СКАЧАТЬ КАТАЛОГ --- */}
+      {currentPage === "download" && (
+        <section className="panel">
+          <h1 className="page-title">Скачать каталог</h1>
+          <div className="page-content">
+            <p>Вы можете сохранить полный каталог книг в формате CSV. Файл откроется в Excel или любой программе для работы с таблицами.</p>
+            <p>В каталог включены все данные: ID, название, авторы, год, издательство, категория, жанры, аннотация, место хранения и ссылка на PDF-файл.</p>
+            <button className="btn-primary" style={{ marginTop: 12 }} onClick={handleDownloadCsv}>
+              📥 Скачать каталог (CSV)
+            </button>
+          </div>
+        </section>
+      )}
 
-                    {book.annotation && (
-                      <p className="book-annotation">{book.annotation}</p>
-                    )}
-
-                    <div className="card-actions">
-                      <button className="secondary" onClick={() => setSelectedBook(book)}>
-                        Подробнее
-                      </button>
-                      
-                      {fileUrl && (
-                        <a
-                          href={fileUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          download={!fileUrl.startsWith("http") ? book.pdfPath?.split("/").pop() : undefined}
-                        >
-                          Скачать PDF
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+      {/* --- СТРАНИЦА: КАТАЛОГ --- */}
+      {currentPage === "catalog" && (
+        <>
+          <section className="panel">
+            <strong>Каталог для посетителей</strong>
+            <p className="muted">Используйте поиск по библиографическим данным или откройте фильтры, чтобы уточнить категорию, жанр и год издания.</p>
           </section>
 
-          {visibleCount < visibleBooks.length && (
-            <div className="load-more-container">
-              <button type="button" className="secondary" onClick={() => setVisibleCount((prev) => prev + 10)}>
-                Показать еще
+          <section className="search-area" aria-label="Поиск и фильтры">
+            <div className="search-line">
+              <input
+                className="search-input" type="search" value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Поиск по названию, автору, году, издательству, жанру…"
+                aria-label="Поиск по каталогу"
+              />
+              <button
+                type="button"
+                className={`filters-button ${activeFilterCount > 0 ? "active" : ""}`}
+                onClick={() => setFiltersOpen((open) => !open)}
+              >
+                Фильтры
+                {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+                <span aria-hidden="true" style={{ marginLeft: 6 }}>{filtersOpen ? "▲" : "▼"}</span>
               </button>
             </div>
+
+            {filtersOpen && (
+              <div className="filters-panel">
+                <div className="filter-section">
+                  <h3>Категория</h3>
+                  <div className="category-dropdown">
+                    <button type="button" className="category-dropdown-btn" onClick={() => setCategoryDropdownOpen((open) => !open)}>
+                      {selectedCategory ? getCategoryName(selectedCategory) : "Все категории"}
+                      <span aria-hidden="true">{categoryDropdownOpen ? "▲" : "▼"}</span>
+                    </button>
+                    {categoryDropdownOpen && (
+                      <div className="category-dropdown-menu">
+                        <label className="rubric-option" style={{ marginBottom: 8, paddingBottom: 8, borderBottom: "1px solid var(--color-border)" }}>
+                          <input type="radio" name="category-filter" checked={selectedCategory === ""}
+                            onChange={() => { setSelectedCategory(""); setCategoryDropdownOpen(false); }} />
+                          <span>Все категории</span>
+                        </label>
+                        {CATEGORIES.map((node) => renderCategoryNode(node))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="filter-section">
+                  <h3>Жанры</h3>
+                  <div className="category-dropdown">
+                    <button type="button" className="category-dropdown-btn" onClick={() => setGenreDropdownOpen((open) => !open)}>
+                      {selectedGenres.length > 0 ? `Выбрано жанров: ${selectedGenres.length}` : "Все жанры"}
+                      <span aria-hidden="true">{genreDropdownOpen ? "▲" : "▼"}</span>
+                    </button>
+                    {genreDropdownOpen && (
+                      <div className="category-dropdown-menu">
+                        <div className="genres-dropdown-list">
+                          {GENRES.map((genre) => (
+                            <label key={genre} className="rubric-option" style={{ cursor: "pointer" }}>
+                              <input type="checkbox" checked={selectedGenres.includes(genre)} onChange={() => toggleGenre(genre)} />
+                              <span>{genre}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {yearBounds && (
+                  <div className="filter-section">
+                    <h3>Год издания</h3>
+                    <div className="year-values">
+                      <span>От: {yearRange?.[0] ?? yearBounds.min}</span>
+                      <span>До: {yearRange?.[1] ?? yearBounds.max}</span>
+                    </div>
+                    <div className="year-slider-wrap">
+                      <Slider range min={yearBounds.min} max={yearBounds.max}
+                        value={yearRange ?? [yearBounds.min, yearBounds.max]}
+                        onChange={(value) => { if (Array.isArray(value) && value.length === 2) setYearRange([value[0], value[1]]); }}
+                        allowCross={false} />
+                    </div>
+                    <small className="muted">Доступный диапазон: {yearBounds.min}–{yearBounds.max}</small>
+                  </div>
+                )}
+
+                <div className="filter-actions">
+                  <button type="button" className="secondary" onClick={() => { setSelectedCategory(""); setSelectedGenres([]); setYearRange(null); }}>
+                    Сбросить фильтры
+                  </button>
+                </div>
+              </div>
+            )}
+          </section>
+
+          <p className="muted">Найдено книг: {visibleBooks.length}</p>
+
+          {visibleBooks.length === 0 ? (
+            <section className="panel">По вашему запросу ничего не найдено.</section>
+          ) : (
+            <>
+              <section className="grid">
+                {visibleBooks.slice(0, visibleCount).map((book) => {
+                  const fileUrl = getPdfUrl(book);
+                  return (
+                    <article className="book-card" key={book.id}>
+                      <span className="tag">{book.category || "Без категории"}</span>
+                      {fileUrl && <PdfCover src={fileUrl} alt={`Обложка книги «${book.title}»`} />}
+                      <div className="book-info">
+                        <h2>{book.title}</h2>
+                        {book.authors.length > 0 && (<p><strong>Автор</strong>{book.authors.join(", ")}</p>)}
+                        {book.year && (<p><strong>Год издания</strong>{book.year}</p>)}
+                        {book.publisher && (<p><strong>Издательство</strong>{book.publisher}</p>)}
+                        {book.genres && book.genres.length > 0 && (<p><strong>Жанры</strong>{book.genres.join(", ")}</p>)}
+                        {(book.rack || book.shelf) && (
+                          <p><strong>Место хранения</strong>Шкаф № {book.rack || "—"}, полка № {book.shelf || "—"}</p>
+                        )}
+                        {book.inventoryNumber && (<p><strong>Инвентарный номер</strong>{book.inventoryNumber}</p>)}
+                        {book.annotation && (<p className="book-annotation">{book.annotation}</p>)}
+                        <div className="card-actions">
+                          <button className="secondary" onClick={() => setSelectedBook(book)}>Подробнее</button>
+                          {fileUrl && (
+                            <a href={fileUrl} target="_blank" rel="noreferrer" download={!fileUrl.startsWith("http") ? book.pdfPath?.split("/").pop() : undefined}>
+                              Скачать PDF
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </section>
+
+              {visibleCount < visibleBooks.length && (
+                <div className="load-more-container">
+                  <button type="button" className="secondary" onClick={() => setVisibleCount((prev) => prev + 10)}>Показать еще</button>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
 
+      {/* --- МОДАЛЬНОЕ ОКНО ПРОСМОТРА КНИГИ --- */}
       {selectedBook && (
-        <div className="modal-backdrop" role="presentation">
-          <section className="modal" role="dialog" aria-modal="true" aria-label="Карточка книги">
+        <div className="modal-backdrop" role="presentation" onClick={() => setSelectedBook(null)}>
+          <section className="modal" role="dialog" aria-modal="true" aria-label="Карточка книги" onClick={(e) => e.stopPropagation()}>
             <div className="topbar">
               <h2>{selectedBook.title}</h2>
-              <button className="secondary" onClick={() => setSelectedBook(null)}>
-                Закрыть
-              </button>
+              <button className="secondary" onClick={() => setSelectedBook(null)}>Закрыть</button>
             </div>
             <p><strong>Автор:</strong> {selectedBook.authors.join(", ") || "—"}</p>
             <p><strong>Год:</strong> {selectedBook.year ?? "—"}</p>
@@ -1180,9 +1135,7 @@ export default function App() {
             <p><strong>Полка:</strong> {selectedBook.shelf || "—"}</p>
             <p><strong>Инвентарный номер:</strong> {selectedBook.inventoryNumber || "—"}</p>
             {getPdfUrl(selectedBook) && (
-              <a href={getPdfUrl(selectedBook)} target="_blank" rel="noreferrer">
-                Открыть PDF
-              </a>
+              <a href={getPdfUrl(selectedBook)} target="_blank" rel="noreferrer">Открыть PDF</a>
             )}
           </section>
         </div>
