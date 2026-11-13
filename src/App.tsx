@@ -223,7 +223,6 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<"catalog" | "about" | "download">("catalog");
 
-  // Тема: загружаем и сразу применяем атрибут
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     const saved = localStorage.getItem("theme");
     const t = saved === "dark" ? "dark" : "light";
@@ -275,7 +274,6 @@ export default function App() {
     });
   }, [books, selectedCategory, selectedGenres, yearRange, query]);
 
-  // --- "УДИВИТЕ МЕНЯ" ---
   const handleSurprise = () => {
     if (filterableBooks.length === 0) return;
     const randomBook = filterableBooks[Math.floor(Math.random() * filterableBooks.length)];
@@ -284,7 +282,6 @@ export default function App() {
     setMenuOpen(false);
   };
 
-  // --- СКАЧАТЬ КАТАЛОГ В CSV ---
   const handleDownloadCsv = () => {
     const headers = [
       "ID", "Название", "Автор", "Год", "Издательство", "Категория",
@@ -311,7 +308,6 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
-  // --- РЕНДЕР ДЕРЕВА КАТЕГОРИЙ ---
   function renderCategoryNode(node: CategoryNode, depth = 0) {
     const hasChildren = node.children && node.children.length > 0;
     const isSelected = selectedCategory === node.id;
@@ -361,7 +357,6 @@ export default function App() {
           font-weight: 500; font-style: normal; font-display: swap;
         }
 
-        /* --- СВЕТЛАЯ ТЕМА (по умолчанию) --- */
         :root, [data-theme="light"] {
           --color-green: #31563f;
           --color-green-dark: #254531;
@@ -378,7 +373,6 @@ export default function App() {
           --font-body: "Cochin", Georgia, system-ui, -apple-system, serif;
         }
 
-        /* --- ТЁМНАЯ ТЕМА --- */
         [data-theme="dark"] {
           --color-green: #31563f;
           --color-green-dark: #4a7a5e;
@@ -435,7 +429,7 @@ export default function App() {
         .brand .muted { font-size: 0.95rem; }
         .muted { color: var(--color-muted); }
 
-        /* --- Бургер-кнопка --- */
+        /* --- Бургер --- */
         .burger-btn {
           background: transparent;
           color: var(--color-green);
@@ -454,7 +448,7 @@ export default function App() {
 
         .burger-btn:hover { background: var(--color-green); color: #fff; }
 
-        /* --- Выдвижное меню --- */
+        /* --- Меню --- */
         .menu-backdrop {
           position: fixed;
           inset: 0;
@@ -468,8 +462,8 @@ export default function App() {
           top: 0;
           right: 0;
           bottom: 0;
-          width: 320px;
-          max-width: 88vw;
+          width: 340px;
+          max-width: 90vw;
           background: var(--color-surface);
           z-index: 101;
           padding: 20px 16px;
@@ -494,19 +488,22 @@ export default function App() {
 
         .side-menu .menu-close:hover { background: var(--color-bg); }
 
+        /* --- Пункты меню: Wremena, увеличенный кегль, без смайликов --- */
         .side-menu .menu-item {
           background: transparent;
           color: var(--color-text);
           border: none;
           text-align: left;
-          padding: 14px 16px;
-          font-size: 1rem;
+          padding: 16px 18px;
+          font-size: 1.2rem;
           border-radius: 6px;
-          font-family: var(--font-body);
-          transition: background 0.15s;
+          font-family: var(--font-display);
+          font-weight: 700;
+          letter-spacing: 0.01em;
+          transition: background 0.15s, color 0.15s;
         }
 
-        .side-menu .menu-item:hover { background: var(--color-bg); }
+        .side-menu .menu-item:hover { background: var(--color-bg); color: var(--color-green); }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
@@ -777,7 +774,7 @@ export default function App() {
           align-content: start;
         }
 
-        .book-info > h2, .book-info > .book-annotation, .book-info > .card-actions { grid-column: 1 / -1; }
+        .book-info > h2, .book-info > .card-actions { grid-column: 1 / -1; }
 
         .book-info > h2 {
           margin: 0 0 8px;
@@ -798,8 +795,6 @@ export default function App() {
           letter-spacing: 0.05em;
           margin-bottom: 4px;
         }
-
-        .book-info .book-annotation { margin-top: 8px; color: var(--color-muted); font-size: 0.95rem; line-height: 1.5; }
 
         .card-actions {
           display: flex;
@@ -841,7 +836,7 @@ export default function App() {
         }
 
         .modal {
-          width: min(640px, 100%);
+          width: min(720px, 100%);
           max-height: 90vh;
           overflow: auto;
           padding: 32px;
@@ -859,6 +854,44 @@ export default function App() {
           font-size: 1.5rem;
           font-weight: 700;
           color: var(--color-green);
+        }
+
+        /* --- Раскладка с обложкой в модальном окне --- */
+        .modal-book-layout {
+          display: grid;
+          grid-template-columns: 160px 1fr;
+          gap: 24px;
+          margin-bottom: 20px;
+          align-items: start;
+        }
+
+        .modal-cover {
+          width: 160px;
+          aspect-ratio: 3 / 4;
+          border-radius: 4px;
+          overflow: hidden;
+          border: 1px solid var(--color-border);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .modal-cover .cover-wrap {
+          width: 100%;
+          height: 100%;
+          grid-column: auto;
+          grid-row: auto;
+          box-shadow: none;
+          border: none;
+          border-radius: 0;
+        }
+
+        .modal-book-main p { margin: 0 0 10px; font-size: 0.95rem; line-height: 1.55; color: var(--color-text); }
+        .modal-book-main p strong {
+          font-weight: 700;
+          color: var(--color-muted);
+          font-size: 0.85rem;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          margin-right: 6px;
         }
 
         .modal p { margin: 0 0 10px; font-size: 0.95rem; line-height: 1.55; color: var(--color-text); }
@@ -883,7 +916,6 @@ export default function App() {
           .cover-wrap { grid-column: 1; grid-row: auto; justify-self: center; width: 140px; }
           .book-info { grid-column: 1; grid-row: auto; width: 100%; }
 
-          /* --- ИСПРАВЛЕНИЕ: поиск и кнопка в одну строку, компактно --- */
           .search-line {
             flex-direction: row;
             align-items: stretch;
@@ -909,6 +941,17 @@ export default function App() {
 
           .modal { padding: 24px; }
           .filters-panel { padding: 20px; }
+
+          /* Мобильная раскладка модального окна */
+          .modal-book-layout {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+
+          .modal-cover {
+            width: 140px;
+            justify-self: center;
+          }
         }
       `}</style>
 
@@ -926,12 +969,12 @@ export default function App() {
           <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
           <nav className="side-menu" aria-label="Главное меню">
             <button className="menu-close" onClick={() => setMenuOpen(false)} aria-label="Закрыть меню">×</button>
-            <button className="menu-item" onClick={() => { setCurrentPage("catalog"); setMenuOpen(false); }}>📚 Каталог</button>
-            <button className="menu-item" onClick={() => { setCurrentPage("about"); setMenuOpen(false); }}>ℹ️ О проекте</button>
-            <button className="menu-item" onClick={() => { setCurrentPage("download"); setMenuOpen(false); }}>📥 Скачать каталог</button>
-            <button className="menu-item" onClick={handleSurprise}>🎲 Удивите меня</button>
+            <button className="menu-item" onClick={() => { setCurrentPage("catalog"); setMenuOpen(false); }}>Каталог</button>
+            <button className="menu-item" onClick={() => { setCurrentPage("about"); setMenuOpen(false); }}>О проекте</button>
+            <button className="menu-item" onClick={() => { setCurrentPage("download"); setMenuOpen(false); }}>Скачать каталог</button>
+            <button className="menu-item" onClick={handleSurprise}>Удивите меня</button>
             <button className="menu-item" onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
-              {theme === "light" ? "🌙 Тёмная тема" : "☀️ Светлая тема"}
+              {theme === "light" ? "Тёмная тема" : "Светлая тема"}
             </button>
           </nav>
         </>
@@ -956,7 +999,7 @@ export default function App() {
             <p>Вы можете сохранить полный каталог книг в формате CSV. Файл откроется в Excel или любой программе для работы с таблицами.</p>
             <p>В каталог включены все данные: ID, название, авторы, год, издательство, категория, жанры, аннотация, место хранения и ссылка на PDF-файл.</p>
             <button className="btn-primary" style={{ marginTop: 12 }} onClick={handleDownloadCsv}>
-              📥 Скачать каталог (CSV)
+              Скачать каталог (CSV)
             </button>
           </div>
         </section>
@@ -1077,12 +1120,6 @@ export default function App() {
                         {book.authors.length > 0 && (<p><strong>Автор</strong>{book.authors.join(", ")}</p>)}
                         {book.year && (<p><strong>Год издания</strong>{book.year}</p>)}
                         {book.publisher && (<p><strong>Издательство</strong>{book.publisher}</p>)}
-                        {book.genres && book.genres.length > 0 && (<p><strong>Жанры</strong>{book.genres.join(", ")}</p>)}
-                        {(book.rack || book.shelf) && (
-                          <p><strong>Место хранения</strong>Шкаф № {book.rack || "—"}, полка № {book.shelf || "—"}</p>
-                        )}
-                        {book.inventoryNumber && (<p><strong>Инвентарный номер</strong>{book.inventoryNumber}</p>)}
-                        {book.annotation && (<p className="book-annotation">{book.annotation}</p>)}
                         <div className="card-actions">
                           <button className="secondary" onClick={() => setSelectedBook(book)}>Подробнее</button>
                           {fileUrl && (
@@ -1107,7 +1144,7 @@ export default function App() {
         </>
       )}
 
-      {/* --- МОДАЛЬНОЕ ОКНО ПРОСМОТРА КНИГИ --- */}
+      {/* --- МОДАЛЬНОЕ ОКНО "ПОДРОБНЕЕ" --- */}
       {selectedBook && (
         <div className="modal-backdrop" role="presentation" onClick={() => setSelectedBook(null)}>
           <section className="modal" role="dialog" aria-modal="true" aria-label="Карточка книги" onClick={(e) => e.stopPropagation()}>
@@ -1115,17 +1152,31 @@ export default function App() {
               <h2>{selectedBook.title}</h2>
               <button className="secondary" onClick={() => setSelectedBook(null)}>Закрыть</button>
             </div>
-            <p><strong>Автор:</strong> {selectedBook.authors.join(", ") || "—"}</p>
-            <p><strong>Год:</strong> {selectedBook.year ?? "—"}</p>
-            <p><strong>Издательство:</strong> {selectedBook.publisher || "—"}</p>
-            <p><strong>Категория:</strong> {selectedBook.category || "—"}</p>
-            <p><strong>Жанры:</strong> {selectedBook.genres?.join(", ") || "—"}</p>
+
+            <div className="modal-book-layout">
+              {getPdfUrl(selectedBook) && (
+                <div className="modal-cover">
+                  <PdfCover src={getPdfUrl(selectedBook)} alt={`Обложка книги «${selectedBook.title}»`} />
+                </div>
+              )}
+              <div className="modal-book-main">
+                <p><strong>Автор:</strong> {selectedBook.authors.join(", ") || "—"}</p>
+                <p><strong>Год:</strong> {selectedBook.year ?? "—"}</p>
+                <p><strong>Издательство:</strong> {selectedBook.publisher || "—"}</p>
+                <p><strong>Категория:</strong> {selectedBook.category || "—"}</p>
+                <p><strong>Жанры:</strong> {selectedBook.genres?.join(", ") || "—"}</p>
+                <p><strong>Стеллаж:</strong> {selectedBook.rack || "—"}</p>
+                <p><strong>Полка:</strong> {selectedBook.shelf || "—"}</p>
+                <p><strong>Инвентарный номер:</strong> {selectedBook.inventoryNumber || "—"}</p>
+              </div>
+            </div>
+
             <p><strong>Аннотация:</strong> {selectedBook.annotation || "—"}</p>
-            <p><strong>Стеллаж:</strong> {selectedBook.rack || "—"}</p>
-            <p><strong>Полка:</strong> {selectedBook.shelf || "—"}</p>
-            <p><strong>Инвентарный номер:</strong> {selectedBook.inventoryNumber || "—"}</p>
+
             {getPdfUrl(selectedBook) && (
-              <a href={getPdfUrl(selectedBook)} target="_blank" rel="noreferrer">Открыть PDF</a>
+              <p style={{ marginTop: 16 }}>
+                <a href={getPdfUrl(selectedBook)} target="_blank" rel="noreferrer">Открыть PDF</a>
+              </p>
             )}
           </section>
         </div>
