@@ -1116,7 +1116,15 @@ export default function App() {
                       <span className="tag">{book.category || "Без категории"}</span>
                       {fileUrl && <PdfCover src={fileUrl} alt={`Обложка книги «${book.title}»`} />}
                       <div className="book-info">
-                        <h2>{book.title}</h2>
+                        <h2>
+                          <button
+                            type="button"
+                            className="title-btn"
+                            onClick={() => setSelectedBook(book)}
+                          >
+                            {book.title}
+                          </button>
+                        </h2>
                         {book.authors.length > 0 && (<p><strong>Автор</strong>{book.authors.join(", ")}</p>)}
                         {book.year && (<p><strong>Год издания</strong>{book.year}</p>)}
                         {book.publisher && (<p><strong>Издательство</strong>{book.publisher}</p>)}

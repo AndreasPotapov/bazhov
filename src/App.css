@@ -365,3 +365,26 @@ h1 {
     grid-template-columns: 1fr;
   }
 }
+        /* --- Название книги как кнопка --- */
+        .book-info > h2 .title-btn {
+          background: transparent;
+          border: 0;
+          padding: 0;
+          margin: 0;
+          color: inherit;
+          font: inherit;
+          font-family: var(--font-display);
+          font-size: 1.6rem;
+          font-weight: 700;
+          line-height: 1.25;
+          text-align: left;
+          cursor: pointer;
+          transition: color 0.15s;
+        }
+
+        .book-info > h2 .title-btn:hover {
+          color: var(--color-green-dark);
+          text-decoration: underline;
+          text-decoration-thickness: 1px;
+          text-underline-offset: 4px;
+        }
