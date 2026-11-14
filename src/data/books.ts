@@ -18,6 +18,27 @@ export type Book = {
 
 export const books: Book[] = [
   {
+    "id": "B-0003",
+    "title": "Собрание сочинений в 3 томах: том 2, Малахитовая шкатулка",
+    "authors": [
+      "Бажов П. П."
+    ],
+    "year": 1986,
+    "publisher": "Москва",
+    "category": "Проза",
+    "genres": [
+      "Альманахи и сборники",
+      "Рассказы и новеллы",
+      "Повести"
+    ],
+    "annotation": "",
+    "rack": "2",
+    "shelf": "7",
+    "inventoryNumber": "B-0003",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0003.pdf",
+    "published": true
+  },
+  {
     "id": "B-0002",
     "title": "Собрание сочинений в 3 томах. Том 1",
     "authors": [
