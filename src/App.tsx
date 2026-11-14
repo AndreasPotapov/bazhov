@@ -133,8 +133,8 @@ function bookStems(book: Book): string[] {
     book.annotation,
     book.inventoryNumber,
     book.year?.toString(),
-    book.rack,   // <-- Добавили стеллаж
-    book.shelf,  // <-- Добавили полку
+    book.rack,
+    book.shelf,
   ].filter(Boolean).join(" ");
   return stemText(text);
 }
@@ -453,7 +453,7 @@ export default function App() {
           transition: background 0.15s, color 0.15s;
         }
 
-        .burger-btn:hover { background: var(--color-green); color: #fff; }
+        .burger-btn:hover { background: var(--color-green); color: #fff !important; }
 
         .menu-backdrop {
           position: fixed;
@@ -786,6 +786,7 @@ export default function App() {
           color: var(--color-green);
         }
 
+        /* --- Стили для кнопки-названия (сохраняем зеленый цвет при наведении) --- */
         .title-btn {
           cursor: pointer;
           background: transparent !important;
@@ -795,6 +796,11 @@ export default function App() {
           color: inherit !important;
           font: inherit !important;
           text-align: left;
+        }
+
+        .title-btn:hover {
+          background: transparent !important;
+          color: var(--color-green) !important;
         }
 
         .book-info p { margin: 0; font-size: 0.95rem; line-height: 1.5; color: var(--color-text); }
@@ -916,9 +922,8 @@ export default function App() {
 
         .modal a { color: var(--color-green); font-weight: 500; text-decoration: none; border-bottom: 1px solid var(--color-green); }
 
-        /* --- Подвал сайта --- */
         .site-footer {
-          margin-top: auto; /* Прижимаем к низу */
+          margin-top: auto;
           padding-top: 60px;
           padding-bottom: 40px;
           border-top: 1px solid var(--color-border);
@@ -1074,7 +1079,7 @@ export default function App() {
                 <input
                   className="search-input" type="search" value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Поиск по названию, автору, издательству, стеллажу, полке…"
+                  placeholder="Поиск по названию, автору, издательству, шкафу, полке…"
                   aria-label="Поиск по каталогу"
                 />
                 <button
@@ -1184,6 +1189,12 @@ export default function App() {
                           {book.authors.length > 0 && (<p><strong>Автор</strong>{book.authors.join(", ")}</p>)}
                           {book.year && (<p><strong>Год издания</strong>{book.year}</p>)}
                           {book.publisher && (<p><strong>Издательство</strong>{book.publisher}</p>)}
+                          
+                          {/* ВОЗВРАЩАЕМ МЕСТО ХРАНЕНИЯ НА ГЛАВНУЮ КАРТОЧКУ */}
+                          {(book.rack || book.shelf) && (
+                            <p><strong>Место хранения</strong>Шкаф № {book.rack || "—"}, полка № {book.shelf || "—"}</p>
+                          )}
+
                           <div className="card-actions">
                             <button className="secondary" onClick={() => setSelectedBook(book)}>Подробнее</button>
                             {fileUrl && (
@@ -1209,7 +1220,6 @@ export default function App() {
         )}
       </div>
 
-      {/* ПОДВАЛ С ЛОГОТИПАМИ */}
       <footer className="site-footer">
         <div className="footer-logos">
           <div className="logo-placeholder">Логотип музея</div>
@@ -1239,7 +1249,7 @@ export default function App() {
                 <p><strong>Издательство:</strong> {selectedBook.publisher || "—"}</p>
                 <p><strong>Категория:</strong> {selectedBook.category || "—"}</p>
                 <p><strong>Жанры:</strong> {selectedBook.genres?.join(", ") || "—"}</p>
-                <p><strong>Стеллаж:</strong> {selectedBook.rack || "—"}</p>
+                <p><strong>Шкаф:</strong> {selectedBook.rack || "—"}</p> {/* ЗАМЕНИЛИ СТЕЛЛАЖ НА ШКАФ */}
                 <p><strong>Полка:</strong> {selectedBook.shelf || "—"}</p>
                 <p><strong>Инвентарный номер:</strong> {selectedBook.inventoryNumber || "—"}</p>
               </div>
