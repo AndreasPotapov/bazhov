@@ -125,8 +125,16 @@ function stemText(text: string): string[] {
 
 function bookStems(book: Book): string[] {
   const text = [
-    book.title, ...book.authors, book.publisher, book.category,
-    ...(book.genres || []), book.annotation, book.inventoryNumber, book.year?.toString(),
+    book.title,
+    ...book.authors,
+    book.publisher,
+    book.category,
+    ...(book.genres || []),
+    book.annotation,
+    book.inventoryNumber,
+    book.year?.toString(),
+    book.rack,   // <-- Добавили стеллаж
+    book.shelf,  // <-- Добавили полку
   ].filter(Boolean).join(" ");
   return stemText(text);
 }
@@ -403,7 +411,7 @@ export default function App() {
         button, input, select, textarea { font: inherit; }
         button { cursor: pointer; }
 
-        .app { max-width: 1120px; margin: 0 auto; padding: 32px 24px 80px; }
+        .app { max-width: 1120px; margin: 0 auto; padding: 32px 24px 80px; display: flex; flex-direction: column; min-height: 100vh; }
 
         .topbar {
           display: flex;
@@ -429,7 +437,6 @@ export default function App() {
         .brand .muted { font-size: 0.95rem; }
         .muted { color: var(--color-muted); }
 
-        /* --- Бургер --- */
         .burger-btn {
           background: transparent;
           color: var(--color-green);
@@ -448,7 +455,6 @@ export default function App() {
 
         .burger-btn:hover { background: var(--color-green); color: #fff; }
 
-        /* --- Меню --- */
         .menu-backdrop {
           position: fixed;
           inset: 0;
@@ -488,7 +494,6 @@ export default function App() {
 
         .side-menu .menu-close:hover { background: var(--color-bg); }
 
-        /* --- Пункты меню: Wremena, увеличенный кегль, без смайликов --- */
         .side-menu .menu-item {
           background: transparent;
           color: var(--color-text);
@@ -508,7 +513,6 @@ export default function App() {
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
-        /* --- Панели / страницы --- */
         .panel {
           padding: 24px;
           margin: 0 0 32px;
@@ -543,7 +547,6 @@ export default function App() {
           margin: 0 0 16px;
         }
 
-        /* --- Поиск --- */
         .search-area { margin-bottom: 40px; }
 
         .search-line {
@@ -586,7 +589,7 @@ export default function App() {
           flex-shrink: 0;
         }
 
-        .filters-button:hover, .filters-button.active { background: var(--color-green); color: #fff; }
+        .filters-button:hover, .filters-button.active { background: var(--color-green); color: #fff !important; }
 
         .filters-panel {
           margin-top: 16px;
@@ -691,7 +694,6 @@ export default function App() {
 
         .filter-actions { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--color-border); }
 
-        /* --- Кнопки --- */
         button {
           border: 0;
           border-radius: 6px;
@@ -700,10 +702,10 @@ export default function App() {
           color: #fff;
           font-weight: 500;
           font-size: 0.95rem;
-          transition: background 0.15s;
+          transition: background 0.15s, color 0.15s;
         }
 
-        button:hover { background: var(--color-green-dark); }
+        button:hover { background: var(--color-green-dark); color: #fff !important; }
 
         button.secondary {
           color: var(--color-green);
@@ -711,9 +713,8 @@ export default function App() {
           border: 1px solid var(--color-green);
         }
 
-        button.secondary:hover { background: var(--color-green); color: #fff; }
+        button.secondary:hover { background: var(--color-green); color: #fff !important; }
 
-        /* --- Каталог --- */
         .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
 
         .book-card {
@@ -785,6 +786,17 @@ export default function App() {
           color: var(--color-green);
         }
 
+        .title-btn {
+          cursor: pointer;
+          background: transparent !important;
+          border: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          color: inherit !important;
+          font: inherit !important;
+          text-align: left;
+        }
+
         .book-info p { margin: 0; font-size: 0.95rem; line-height: 1.5; color: var(--color-text); }
         .book-info p strong {
           display: block;
@@ -818,12 +830,11 @@ export default function App() {
           transition: background 0.15s, color 0.15s;
         }
 
-        .card-actions a:hover { background: var(--color-green); color: #fff; }
+        .card-actions a:hover { background: var(--color-green); color: #fff !important; }
 
         .load-more-container { display: flex; justify-content: center; margin-top: 32px; margin-bottom: 16px; }
         .load-more-container button { padding: 12px 32px; font-size: 1rem; min-width: 200px; }
 
-        /* --- Модальное окно --- */
         .modal-backdrop {
           position: fixed;
           inset: 0;
@@ -856,7 +867,6 @@ export default function App() {
           color: var(--color-green);
         }
 
-        /* --- Раскладка с обложкой в модальном окне --- */
         .modal-book-layout {
           display: grid;
           grid-template-columns: 160px 1fr;
@@ -906,7 +916,48 @@ export default function App() {
 
         .modal a { color: var(--color-green); font-weight: 500; text-decoration: none; border-bottom: 1px solid var(--color-green); }
 
-        /* --- Мобильная версия --- */
+        /* --- Подвал сайта --- */
+        .site-footer {
+          margin-top: auto; /* Прижимаем к низу */
+          padding-top: 60px;
+          padding-bottom: 40px;
+          border-top: 1px solid var(--color-border);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 24px;
+        }
+
+        .footer-logos {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
+          gap: 40px;
+        }
+
+        .logo-placeholder {
+          width: 140px;
+          height: 70px;
+          background: var(--color-surface);
+          border: 1px dashed var(--color-border);
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.8rem;
+          color: var(--color-muted);
+          text-align: center;
+          padding: 8px;
+        }
+
+        .footer-copyright {
+          margin: 0;
+          font-size: 0.85rem;
+          color: var(--color-muted);
+          text-align: center;
+        }
+
         @media (max-width: 700px) {
           .app { padding: 20px 16px 60px; }
           .topbar { margin-bottom: 24px; padding-bottom: 16px; }
@@ -942,7 +993,6 @@ export default function App() {
           .modal { padding: 24px; }
           .filters-panel { padding: 20px; }
 
-          /* Мобильная раскладка модального окна */
           .modal-book-layout {
             grid-template-columns: 1fr;
             gap: 16px;
@@ -951,6 +1001,15 @@ export default function App() {
           .modal-cover {
             width: 140px;
             justify-self: center;
+          }
+
+          .footer-logos {
+            gap: 20px;
+          }
+          .logo-placeholder {
+            width: 100px;
+            height: 50px;
+            font-size: 0.7rem;
           }
         }
       `}</style>
@@ -963,7 +1022,6 @@ export default function App() {
         <button className="burger-btn" onClick={() => setMenuOpen(true)} aria-label="Открыть меню">☰</button>
       </header>
 
-      {/* --- БОКОВОЕ МЕНЮ --- */}
       {menuOpen && (
         <>
           <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
@@ -980,184 +1038,187 @@ export default function App() {
         </>
       )}
 
-      {/* --- СТРАНИЦА: О ПРОЕКТЕ --- */}
-      {currentPage === "about" && (
-        <section className="panel">
-          <h1 className="page-title">О проекте</h1>
-          <div className="page-content">
-            <p>Здесь будет текст, описывающий работу сайта, историю коллекции и цели проекта.</p>
-            <p className="muted">(Текст будет добавлен позже)</p>
-          </div>
-        </section>
-      )}
-
-      {/* --- СТРАНИЦА: СКАЧАТЬ КАТАЛОГ --- */}
-      {currentPage === "download" && (
-        <section className="panel">
-          <h1 className="page-title">Скачать каталог</h1>
-          <div className="page-content">
-            <p>Вы можете сохранить полный каталог книг в формате CSV. Файл откроется в Excel или любой программе для работы с таблицами.</p>
-            <p>В каталог включены все данные: ID, название, авторы, год, издательство, категория, жанры, аннотация, место хранения и ссылка на PDF-файл.</p>
-            <button className="btn-primary" style={{ marginTop: 12 }} onClick={handleDownloadCsv}>
-              Скачать каталог (CSV)
-            </button>
-          </div>
-        </section>
-      )}
-
-      {/* --- СТРАНИЦА: КАТАЛОГ --- */}
-      {currentPage === "catalog" && (
-        <>
+      <div style={{ flex: 1 }}>
+        {currentPage === "about" && (
           <section className="panel">
-            <strong>Каталог для посетителей</strong>
-            <p className="muted">Используйте поиск по библиографическим данным или откройте фильтры, чтобы уточнить категорию, жанр и год издания.</p>
+            <h1 className="page-title">О проекте</h1>
+            <div className="page-content">
+              <p>Здесь будет текст, описывающий работу сайта, историю коллекции и цели проекта.</p>
+              <p className="muted">(Текст будет добавлен позже)</p>
+            </div>
           </section>
+        )}
 
-          <section className="search-area" aria-label="Поиск и фильтры">
-            <div className="search-line">
-              <input
-                className="search-input" type="search" value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Поиск по названию, автору, году, издательству, жанру…"
-                aria-label="Поиск по каталогу"
-              />
-              <button
-                type="button"
-                className={`filters-button ${activeFilterCount > 0 ? "active" : ""}`}
-                onClick={() => setFiltersOpen((open) => !open)}
-              >
-                Фильтры
-                {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-                <span aria-hidden="true" style={{ marginLeft: 6 }}>{filtersOpen ? "▲" : "▼"}</span>
+        {currentPage === "download" && (
+          <section className="panel">
+            <h1 className="page-title">Скачать каталог</h1>
+            <div className="page-content">
+              <p>Вы можете сохранить полный каталог книг в формате CSV. Файл откроется в Excel или любой программе для работы с таблицами.</p>
+              <p>В каталог включены все данные: ID, название, авторы, год, издательство, категория, жанры, аннотация, место хранения и ссылка на PDF-файл.</p>
+              <button className="btn-primary" style={{ marginTop: 12 }} onClick={handleDownloadCsv}>
+                Скачать каталог (CSV)
               </button>
             </div>
-
-            {filtersOpen && (
-              <div className="filters-panel">
-                <div className="filter-section">
-                  <h3>Категория</h3>
-                  <div className="category-dropdown">
-                    <button type="button" className="category-dropdown-btn" onClick={() => setCategoryDropdownOpen((open) => !open)}>
-                      {selectedCategory ? getCategoryName(selectedCategory) : "Все категории"}
-                      <span aria-hidden="true">{categoryDropdownOpen ? "▲" : "▼"}</span>
-                    </button>
-                    {categoryDropdownOpen && (
-                      <div className="category-dropdown-menu">
-                        <label className="rubric-option" style={{ marginBottom: 8, paddingBottom: 8, borderBottom: "1px solid var(--color-border)" }}>
-                          <input type="radio" name="category-filter" checked={selectedCategory === ""}
-                            onChange={() => { setSelectedCategory(""); setCategoryDropdownOpen(false); }} />
-                          <span>Все категории</span>
-                        </label>
-                        {CATEGORIES.map((node) => renderCategoryNode(node))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="filter-section">
-                  <h3>Жанры</h3>
-                  <div className="category-dropdown">
-                    <button type="button" className="category-dropdown-btn" onClick={() => setGenreDropdownOpen((open) => !open)}>
-                      {selectedGenres.length > 0 ? `Выбрано жанров: ${selectedGenres.length}` : "Все жанры"}
-                      <span aria-hidden="true">{genreDropdownOpen ? "▲" : "▼"}</span>
-                    </button>
-                    {genreDropdownOpen && (
-                      <div className="category-dropdown-menu">
-                        <div className="genres-dropdown-list">
-                          {GENRES.map((genre) => (
-                            <label key={genre} className="rubric-option" style={{ cursor: "pointer" }}>
-                              <input type="checkbox" checked={selectedGenres.includes(genre)} onChange={() => toggleGenre(genre)} />
-                              <span>{genre}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {yearBounds && (
-                  <div className="filter-section">
-                    <h3>Год издания</h3>
-                    <div className="year-values">
-                      <span>От: {yearRange?.[0] ?? yearBounds.min}</span>
-                      <span>До: {yearRange?.[1] ?? yearBounds.max}</span>
-                    </div>
-                    <div className="year-slider-wrap">
-                      <Slider range min={yearBounds.min} max={yearBounds.max}
-                        value={yearRange ?? [yearBounds.min, yearBounds.max]}
-                        onChange={(value) => { if (Array.isArray(value) && value.length === 2) setYearRange([value[0], value[1]]); }}
-                        allowCross={false} />
-                    </div>
-                    <small className="muted">Доступный диапазон: {yearBounds.min}–{yearBounds.max}</small>
-                  </div>
-                )}
-
-                <div className="filter-actions">
-                  <button type="button" className="secondary" onClick={() => { setSelectedCategory(""); setSelectedGenres([]); setYearRange(null); }}>
-                    Сбросить фильтры
-                  </button>
-                </div>
-              </div>
-            )}
           </section>
+        )}
 
-          <p className="muted">Найдено книг: {visibleBooks.length}</p>
+        {currentPage === "catalog" && (
+          <>
+            <section className="panel">
+              <strong>Каталог для посетителей</strong>
+              <p className="muted">Используйте поиск по библиографическим данным или откройте фильтры, чтобы уточнить категорию, жанр и год издания.</p>
+            </section>
 
-          {visibleBooks.length === 0 ? (
-            <section className="panel">По вашему запросу ничего не найдено.</section>
-          ) : (
-            <>
-              <section className="grid">
-                {visibleBooks.slice(0, visibleCount).map((book) => {
-                  const fileUrl = getPdfUrl(book);
-                  return (
-                    <article className="book-card" key={book.id}>
-                      <span className="tag">{book.category || "Без категории"}</span>
-                      {fileUrl && <PdfCover src={fileUrl} alt={`Обложка книги «${book.title}»`} />}
-                      <div className="book-info">
-                          <h2>
-                            <span
-                              className="title-btn"
-                              onClick={() => setSelectedBook(book)}
-                              role="button"
-                              tabIndex={0}
-                              style={{ cursor: "pointer" }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') setSelectedBook(book);
-                              }}
-                            >
-                              {book.title}
-                            </span>
-                           </h2>
-                        {book.authors.length > 0 && (<p><strong>Автор</strong>{book.authors.join(", ")}</p>)}
-                        {book.year && (<p><strong>Год издания</strong>{book.year}</p>)}
-                        {book.publisher && (<p><strong>Издательство</strong>{book.publisher}</p>)}
-                        <div className="card-actions">
-                          <button className="secondary" onClick={() => setSelectedBook(book)}>Подробнее</button>
-                          {fileUrl && (
-                            <a href={fileUrl} target="_blank" rel="noreferrer" download={!fileUrl.startsWith("http") ? book.pdfPath?.split("/").pop() : undefined}>
-                              Скачать PDF
-                            </a>
-                          )}
+            <section className="search-area" aria-label="Поиск и фильтры">
+              <div className="search-line">
+                <input
+                  className="search-input" type="search" value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Поиск по названию, автору, издательству, стеллажу, полке…"
+                  aria-label="Поиск по каталогу"
+                />
+                <button
+                  type="button"
+                  className={`filters-button ${activeFilterCount > 0 ? "active" : ""}`}
+                  onClick={() => setFiltersOpen((open) => !open)}
+                >
+                  Фильтры
+                  {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+                  <span aria-hidden="true" style={{ marginLeft: 6 }}>{filtersOpen ? "▲" : "▼"}</span>
+                </button>
+              </div>
+
+              {filtersOpen && (
+                <div className="filters-panel">
+                  <div className="filter-section">
+                    <h3>Категория</h3>
+                    <div className="category-dropdown">
+                      <button type="button" className="category-dropdown-btn" onClick={() => setCategoryDropdownOpen((open) => !open)}>
+                        {selectedCategory ? getCategoryName(selectedCategory) : "Все категории"}
+                        <span aria-hidden="true">{categoryDropdownOpen ? "▲" : "▼"}</span>
+                      </button>
+                      {categoryDropdownOpen && (
+                        <div className="category-dropdown-menu">
+                          <label className="rubric-option" style={{ marginBottom: 8, paddingBottom: 8, borderBottom: "1px solid var(--color-border)" }}>
+                            <input type="radio" name="category-filter" checked={selectedCategory === ""}
+                              onChange={() => { setSelectedCategory(""); setCategoryDropdownOpen(false); }} />
+                            <span>Все категории</span>
+                          </label>
+                          {CATEGORIES.map((node) => renderCategoryNode(node))}
                         </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </section>
+                      )}
+                    </div>
+                  </div>
 
-              {visibleCount < visibleBooks.length && (
-                <div className="load-more-container">
-                  <button type="button" className="secondary" onClick={() => setVisibleCount((prev) => prev + 10)}>Показать еще</button>
+                  <div className="filter-section">
+                    <h3>Жанры</h3>
+                    <div className="category-dropdown">
+                      <button type="button" className="category-dropdown-btn" onClick={() => setGenreDropdownOpen((open) => !open)}>
+                        {selectedGenres.length > 0 ? `Выбрано жанров: ${selectedGenres.length}` : "Все жанры"}
+                        <span aria-hidden="true">{genreDropdownOpen ? "▲" : "▼"}</span>
+                      </button>
+                      {genreDropdownOpen && (
+                        <div className="category-dropdown-menu">
+                          <div className="genres-dropdown-list">
+                            {GENRES.map((genre) => (
+                              <label key={genre} className="rubric-option" style={{ cursor: "pointer" }}>
+                                <input type="checkbox" checked={selectedGenres.includes(genre)} onChange={() => toggleGenre(genre)} />
+                                <span>{genre}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {yearBounds && (
+                    <div className="filter-section">
+                      <h3>Год издания</h3>
+                      <div className="year-values">
+                        <span>От: {yearRange?.[0] ?? yearBounds.min}</span>
+                        <span>До: {yearRange?.[1] ?? yearBounds.max}</span>
+                      </div>
+                      <div className="year-slider-wrap">
+                        <Slider range min={yearBounds.min} max={yearBounds.max}
+                          value={yearRange ?? [yearBounds.min, yearBounds.max]}
+                          onChange={(value) => { if (Array.isArray(value) && value.length === 2) setYearRange([value[0], value[1]]); }}
+                          allowCross={false} />
+                      </div>
+                      <small className="muted">Доступный диапазон: {yearBounds.min}–{yearBounds.max}</small>
+                    </div>
+                  )}
+
+                  <div className="filter-actions">
+                    <button type="button" className="secondary" onClick={() => { setSelectedCategory(""); setSelectedGenres([]); setYearRange(null); }}>
+                      Сбросить фильтры
+                    </button>
+                  </div>
                 </div>
               )}
-            </>
-          )}
-        </>
-      )}
+            </section>
 
-      {/* --- МОДАЛЬНОЕ ОКНО "ПОДРОБНЕЕ" --- */}
+            <p className="muted">Найдено книг: {visibleBooks.length}</p>
+
+            {visibleBooks.length === 0 ? (
+              <section className="panel">По вашему запросу ничего не найдено.</section>
+            ) : (
+              <>
+                <section className="grid">
+                  {visibleBooks.slice(0, visibleCount).map((book) => {
+                    const fileUrl = getPdfUrl(book);
+                    return (
+                      <article className="book-card" key={book.id}>
+                        <span className="tag">{book.category || "Без категории"}</span>
+                        {fileUrl && <PdfCover src={fileUrl} alt={`Обложка книги «${book.title}»`} />}
+                        <div className="book-info">
+                          <h2>
+                            <button
+                              className="title-btn"
+                              onClick={() => setSelectedBook(book)}
+                              type="button"
+                            >
+                              {book.title}
+                            </button>
+                          </h2>
+                          {book.authors.length > 0 && (<p><strong>Автор</strong>{book.authors.join(", ")}</p>)}
+                          {book.year && (<p><strong>Год издания</strong>{book.year}</p>)}
+                          {book.publisher && (<p><strong>Издательство</strong>{book.publisher}</p>)}
+                          <div className="card-actions">
+                            <button className="secondary" onClick={() => setSelectedBook(book)}>Подробнее</button>
+                            {fileUrl && (
+                              <a href={fileUrl} target="_blank" rel="noreferrer" download={!fileUrl.startsWith("http") ? book.pdfPath?.split("/").pop() : undefined}>
+                                Скачать PDF
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </section>
+
+                {visibleCount < visibleBooks.length && (
+                  <div className="load-more-container">
+                    <button type="button" className="secondary" onClick={() => setVisibleCount((prev) => prev + 10)}>Показать еще</button>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ПОДВАЛ С ЛОГОТИПАМИ */}
+      <footer className="site-footer">
+        <div className="footer-logos">
+          <div className="logo-placeholder">Логотип музея</div>
+          <div className="logo-placeholder">Логотип университета</div>
+          <div className="logo-placeholder">Логотип партнёра</div>
+        </div>
+        <p className="footer-copyright">© Дом-музей П. П. Бажова, 2026</p>
+      </footer>
+
       {selectedBook && (
         <div className="modal-backdrop" role="presentation" onClick={() => setSelectedBook(null)}>
           <section className="modal" role="dialog" aria-modal="true" aria-label="Карточка книги" onClick={(e) => e.stopPropagation()}>
