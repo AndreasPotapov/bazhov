@@ -220,9 +220,16 @@ export default function App() {
 
   const [query, setQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  
+  // Состояния для расширенного поиска (фильтров)
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [yearRange, setYearRange] = useState<[number, number] | null>(null);
+  const [filterAuthor, setFilterAuthor] = useState("");
+  const [filterPublisher, setFilterPublisher] = useState("");
+  const [filterRack, setFilterRack] = useState("");
+  const [filterShelf, setFilterShelf] = useState("");
+  
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [expandedCategoryIds, setExpandedCategoryIds] = useState<string[]>([]);
   const [genreDropdownOpen, setGenreDropdownOpen] = useState(false);
@@ -243,7 +250,7 @@ export default function App() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  useEffect(() => { setVisibleCount(5); }, [query, selectedCategory, selectedGenres, yearRange]);
+  useEffect(() => { setVisibleCount(5); }, [query, selectedCategory, selectedGenres, yearRange, filterAuthor, filterPublisher, filterRack, filterShelf]);
 
   const filterableBooks = useMemo(() => books.filter((book) => book.published !== false), [books]);
 
@@ -253,7 +260,15 @@ export default function App() {
     return { min: Math.min(...years), max: Math.max(...years) };
   }, [filterableBooks]);
 
-  const activeFilterCount = (selectedCategory ? 1 : 0) + (selectedGenres.length > 0 ? 1 : 0) + (yearRange ? 1 : 0);
+  // Считаем количество активных фильтров
+  const activeFilterCount = 
+    (selectedCategory ? 1 : 0) + 
+    (selectedGenres.length > 0 ? 1 : 0) + 
+    (yearRange ? 1 : 0) + 
+    (filterAuthor.trim() ? 1 : 0) + 
+    (filterPublisher.trim() ? 1 : 0) + 
+    (filterRack ? 1 : 0) + 
+    (filterShelf ? 1 : 0);
 
   function toggleGenre(genre: string) {
     setSelectedGenres((current) => current.includes(genre) ? current.filter((g) => g !== genre) : [...current, genre]);
@@ -267,20 +282,50 @@ export default function App() {
   const visibleBooks = useMemo(() => {
     return books.filter((book) => {
       if (book.published === false) return false;
+      
+      // Текстовый поиск (по всем полям)
+      if (!matchesSearch(book, query)) return false;
+      
+      // Фильтр по категории
       if (selectedCategory) {
         const selectedNames = getCategoryNamesWithChildren(selectedCategory);
         if (!selectedNames.includes(book.category || "")) return false;
       }
+
+      // Фильтр по жанрам
       if (selectedGenres.length > 0) {
         const bookGenres = book.genres || [];
         if (!selectedGenres.some((g) => bookGenres.includes(g))) return false;
       }
+
+      // Фильтр по году
       if (yearRange) {
         if (typeof book.year !== "number" || book.year < yearRange[0] || book.year > yearRange[1]) return false;
       }
-      return matchesSearch(book, query);
+
+      // НОВЫЕ ФИЛЬТРЫ:
+      // Фильтр по автору
+      if (filterAuthor.trim()) {
+        const authorQuery = filterAuthor.toLocaleLowerCase("ru-RU").trim();
+        const hasAuthor = book.authors.some(a => a.toLocaleLowerCase("ru-RU").includes(authorQuery));
+        if (!hasAuthor) return false;
+      }
+
+      // Фильтр по издательству
+      if (filterPublisher.trim()) {
+        const pubQuery = filterPublisher.toLocaleLowerCase("ru-RU").trim();
+        if (!(book.publisher || "").toLocaleLowerCase("ru-RU").includes(pubQuery)) return false;
+      }
+
+      // Фильтр по шкафу
+      if (filterRack && book.rack !== filterRack) return false;
+
+      // Фильтр по полке
+      if (filterShelf && book.shelf !== filterShelf) return false;
+
+      return true;
     });
-  }, [books, selectedCategory, selectedGenres, yearRange, query]);
+  }, [books, query, selectedCategory, selectedGenres, yearRange, filterAuthor, filterPublisher, filterRack, filterShelf]);
 
   const handleSurprise = () => {
     if (filterableBooks.length === 0) return;
@@ -598,7 +643,9 @@ export default function App() {
           border: 1px solid var(--color-border);
           border-radius: 6px;
           display: grid;
+          grid-template-columns: 1fr 1fr; /* Делаем сетку в 2 колонки */
           gap: 24px;
+          align-items: start;
         }
 
         .filter-section h3 {
@@ -608,6 +655,19 @@ export default function App() {
           font-weight: 700;
           color: var(--color-green);
         }
+
+        /* Стили для новых текстовых полей в фильтрах */
+        .filter-input {
+          width: 100%;
+          padding: 10px 14px;
+          border: 1.5px solid var(--color-border);
+          border-radius: 6px;
+          background: var(--color-surface);
+          color: var(--color-text);
+          font-size: 0.95rem;
+          outline: none;
+        }
+        .filter-input:focus { border-color: var(--color-green); }
 
         .category-dropdown { position: relative; }
 
@@ -692,7 +752,30 @@ export default function App() {
           box-shadow: 0 0 0 4px rgb(49 86 63 / 25%) !important;
         }
 
-        .filter-actions { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--color-border); }
+        /* Сетка для выбора шкафа и полки */
+        .storage-selects {
+          display: flex;
+          gap: 10px;
+        }
+        .storage-selects select {
+          flex: 1;
+          padding: 10px 14px;
+          border: 1.5px solid var(--color-border);
+          border-radius: 6px;
+          background: var(--color-surface);
+          color: var(--color-text);
+          outline: none;
+        }
+        .storage-selects select:focus { border-color: var(--color-green); }
+
+        .filter-actions { 
+          grid-column: 1 / -1; /* Кнопка сброса на всю ширину */
+          display: flex; 
+          gap: 10px; 
+          flex-wrap: wrap; 
+          padding-top: 16px; 
+          border-top: 1px solid var(--color-border); 
+        }
 
         button {
           border: 0;
@@ -786,7 +869,6 @@ export default function App() {
           color: var(--color-green);
         }
 
-        /* --- Стили для кнопки-названия (сохраняем зеленый цвет при наведении) --- */
         .title-btn {
           cursor: pointer;
           background: transparent !important;
@@ -996,7 +1078,7 @@ export default function App() {
           }
 
           .modal { padding: 24px; }
-          .filters-panel { padding: 20px; }
+          .filters-panel { padding: 20px; grid-template-columns: 1fr; }
 
           .modal-book-layout {
             grid-template-columns: 1fr;
@@ -1095,6 +1177,8 @@ export default function App() {
 
               {filtersOpen && (
                 <div className="filters-panel">
+                  
+                  {/* Категория */}
                   <div className="filter-section">
                     <h3>Категория</h3>
                     <div className="category-dropdown">
@@ -1115,6 +1199,7 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Жанры */}
                   <div className="filter-section">
                     <h3>Жанры</h3>
                     <div className="category-dropdown">
@@ -1137,6 +1222,7 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Год издания */}
                   {yearBounds && (
                     <div className="filter-section">
                       <h3>Год издания</h3>
@@ -1154,8 +1240,56 @@ export default function App() {
                     </div>
                   )}
 
+                  {/* НОВЫЙ ФИЛЬТР: Автор */}
+                  <div className="filter-section">
+                    <h3>Автор</h3>
+                    <input 
+                      type="text" 
+                      className="filter-input"
+                      placeholder="Фамилия или инициалы..." 
+                      value={filterAuthor}
+                      onChange={(e) => setFilterAuthor(e.target.value)}
+                    />
+                  </div>
+
+                  {/* НОВЫЙ ФИЛЬТР: Издательство */}
+                  <div className="filter-section">
+                    <h3>Издательство</h3>
+                    <input 
+                      type="text" 
+                      className="filter-input"
+                      placeholder="Название издательства..." 
+                      value={filterPublisher}
+                      onChange={(e) => setFilterPublisher(e.target.value)}
+                    />
+                  </div>
+
+                  {/* НОВЫЙ ФИЛЬТР: Место хранения */}
+                  <div className="filter-section">
+                    <h3>Место хранения</h3>
+                    <div className="storage-selects">
+                      <select value={filterRack} onChange={(e) => setFilterRack(e.target.value)}>
+                        <option value="">Все шкафы</option>
+                        {[1, 2, 3, 4].map(n => <option key={n} value={n}>Шкаф {n}</option>)}
+                      </select>
+                      <select value={filterShelf} onChange={(e) => setFilterShelf(e.target.value)}>
+                        <option value="">Все полки</option>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={n}>Полка {n}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Кнопка сброса */}
                   <div className="filter-actions">
-                    <button type="button" className="secondary" onClick={() => { setSelectedCategory(""); setSelectedGenres([]); setYearRange(null); }}>
+                    <button type="button" className="secondary" onClick={() => { 
+                      setSelectedCategory(""); 
+                      setSelectedGenres([]); 
+                      setYearRange(null); 
+                      setFilterAuthor("");
+                      setFilterPublisher("");
+                      setFilterRack("");
+                      setFilterShelf("");
+                    }}>
                       Сбросить фильтры
                     </button>
                   </div>
@@ -1190,7 +1324,6 @@ export default function App() {
                           {book.year && (<p><strong>Год издания</strong>{book.year}</p>)}
                           {book.publisher && (<p><strong>Издательство</strong>{book.publisher}</p>)}
                           
-                          {/* ВОЗВРАЩАЕМ МЕСТО ХРАНЕНИЯ НА ГЛАВНУЮ КАРТОЧКУ */}
                           {(book.rack || book.shelf) && (
                             <p><strong>Место хранения</strong>Шкаф № {book.rack || "—"}, полка № {book.shelf || "—"}</p>
                           )}
@@ -1249,7 +1382,7 @@ export default function App() {
                 <p><strong>Издательство:</strong> {selectedBook.publisher || "—"}</p>
                 <p><strong>Категория:</strong> {selectedBook.category || "—"}</p>
                 <p><strong>Жанры:</strong> {selectedBook.genres?.join(", ") || "—"}</p>
-                <p><strong>Шкаф:</strong> {selectedBook.rack || "—"}</p> {/* ЗАМЕНИЛИ СТЕЛЛАЖ НА ШКАФ */}
+                <p><strong>Шкаф:</strong> {selectedBook.rack || "—"}</p>
                 <p><strong>Полка:</strong> {selectedBook.shelf || "—"}</p>
                 <p><strong>Инвентарный номер:</strong> {selectedBook.inventoryNumber || "—"}</p>
               </div>
