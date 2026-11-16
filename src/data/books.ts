@@ -14,34 +14,33 @@ export type Book = {
   pdfUrl?: string;
   pdfFileName?: string;
   published?: boolean;
-  ocrText?: string; 
   ocrUrl?: string;
 };
 
 export const books: Book[] = [
   {
     "id": "B-0004",
-    "title": "Сочинения в 3 томах. Том 3: Уральские были",
+    "title": "Сочинения в трех томах. Том 3: Уральские были",
     "authors": [
       "Бажов П. П."
     ],
-    "year": 1986,
+    "year": 2026,
     "publisher": "Правда, Москва",
     "category": "Проза",
     "genres": [
       "Альманахи и сборники",
+      "Мифы и мифологические сюжеты",
+      "Легенды и предания",
       "Повести",
-      "Сказки",
-      "Сборники прозы",
-      "Сказки и познавательные истории",
       "Рассказы и новеллы"
     ],
-    "annotation": "Собрание сочинений печатается по изданию: \nП. П. Б а ж о в. Сочинения в трех томах. \nИзд-во «Правда». 1976*\nИллюстрации художника\nИ. И. Пчелко",
-    "rack": "4",
-    "shelf": "8",
+    "annotation": "Собрание сочинений печатается по изданию: П. П. Бажов. Сочинения в трех томах. Изд-во «Правда». 1976\nИллюстрации художника\nИ. И. Пчелко",
+    "rack": "1",
+    "shelf": "1",
     "inventoryNumber": "B-0004",
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0004.pdf",
-    "published": true
+    "published": true,
+    "ocrUrl": ""
   },
   {
     "id": "B-0003",
