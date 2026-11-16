@@ -234,7 +234,7 @@ export default function App() {
   const [expandedCategoryIds, setExpandedCategoryIds] = useState<string[]>([]);
   const [genreDropdownOpen, setGenreDropdownOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [visibleCount, setVisibleCount] = useState(20);
+  const [visibleCount, setVisibleCount] = useState(5);
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<"catalog" | "about" | "download">("catalog");
 
@@ -250,7 +250,7 @@ export default function App() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  useEffect(() => { setVisibleCount(20); }, [query, selectedCategory, selectedGenres, yearRange, filterAuthor, filterPublisher, filterRack, filterShelf]);
+  useEffect(() => { setVisibleCount(5); }, [query, selectedCategory, selectedGenres, yearRange, filterAuthor, filterPublisher, filterRack, filterShelf]);
 
   const filterableBooks = useMemo(() => books.filter((book) => book.published !== false), [books]);
 
@@ -1344,7 +1344,7 @@ export default function App() {
 
                 {visibleCount < visibleBooks.length && (
                   <div className="load-more-container">
-                    <button type="button" className="secondary" onClick={() => setVisibleCount((prev) => prev + 20)}>Показать еще</button>
+                    <button type="button" className="secondary" onClick={() => setVisibleCount((prev) => prev + 10)}>Показать еще</button>
                   </div>
                 )}
               </>
