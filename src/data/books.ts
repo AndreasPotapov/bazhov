@@ -14,6 +14,8 @@ export type Book = {
   pdfUrl?: string;
   pdfFileName?: string;
   published?: boolean;
+  ocrText?: string; 
+  ocrUrl?: string;
 };
 
 export const books: Book[] = [
