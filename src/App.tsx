@@ -113,6 +113,7 @@ function normalizeBook(value: Partial<Book>): Book {
     inventoryNumber: String(value.id ?? "").trim(),
     pdfPath: String(value.pdfPath ?? "").trim(),
     pdfUrl: String(value.pdfUrl ?? "").trim(),
+    ocrUrl: String(value.ocrUrl ?? "").trim(),
     pdfFileName: String(value.pdfFileName ?? "").trim(),
     published: value.published !== false,
   };
@@ -1395,6 +1396,7 @@ export default function App() {
                 <a href={getPdfUrl(selectedBook)} target="_blank" rel="noreferrer">Открыть PDF</a>
               </p>
             )}
+          
           </section>
         </div>
       )}
