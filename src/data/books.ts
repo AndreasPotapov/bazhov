@@ -19,6 +19,24 @@ export type Book = {
 
 export const books: Book[] = [
   {
+    "id": "B-0005",
+    "title": "Test",
+    "authors": [
+      "Testing"
+    ],
+    "year": 2026,
+    "publisher": "",
+    "category": "Нехудожественная литература",
+    "genres": [],
+    "annotation": "",
+    "rack": "4",
+    "shelf": "3",
+    "inventoryNumber": "B-0005",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005.pdf",
+    "published": true,
+    "ocrUrl": ""
+  },
+  {
     "id": "B-0004",
     "title": "Сочинения в 3 томах. Том 3: Уральские были",
     "authors": [
