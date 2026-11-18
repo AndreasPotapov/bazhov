@@ -19,24 +19,6 @@ export type Book = {
 
 export const books: Book[] = [
   {
-    "id": "B-0006",
-    "title": "test 6",
-    "authors": [
-      "test 6"
-    ],
-    "year": 2026,
-    "publisher": "",
-    "category": "Бизнес и профессии",
-    "genres": [],
-    "annotation": "",
-    "rack": "2",
-    "shelf": "8",
-    "inventoryNumber": "B-0006",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0006.pdf",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
     "id": "B-0005",
     "title": "незримый рой тест 4",
     "authors": [
