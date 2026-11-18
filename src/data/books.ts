@@ -37,24 +37,6 @@ export const books: Book[] = [
     "ocrUrl": ""
   },
   {
-    "id": "B-0006",
-    "title": "рой 120 70",
-    "authors": [
-      "Ааа"
-    ],
-    "year": 2026,
-    "publisher": "",
-    "category": "Здоровье и медицина",
-    "genres": [],
-    "annotation": "",
-    "rack": "3",
-    "shelf": "4",
-    "inventoryNumber": "B-0006",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0006.pdf",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
     "id": "B-0005",
     "title": "незримый рой 3",
     "authors": [
