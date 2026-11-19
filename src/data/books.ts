@@ -19,6 +19,24 @@ export type Book = {
 
 export const books: Book[] = [
   {
+    "id": "B-0010",
+    "title": "рой 120 чб",
+    "authors": [
+      "Ага"
+    ],
+    "year": 2026,
+    "publisher": "",
+    "category": "Проза",
+    "genres": [],
+    "annotation": "",
+    "rack": "4",
+    "shelf": "7",
+    "inventoryNumber": "B-0010",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0010.pdf",
+    "published": true,
+    "ocrUrl": ""
+  },
+  {
     "id": "B-0009",
     "title": "рой 120 новая библиотека оптимизации",
     "authors": [
