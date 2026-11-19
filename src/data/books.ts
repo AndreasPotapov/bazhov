@@ -19,36 +19,18 @@ export type Book = {
 
 export const books: Book[] = [
   {
-    "id": "B-0011",
-    "title": "большая книга тест чб",
-    "authors": [
-      "Баров"
-    ],
-    "year": 2026,
-    "publisher": "",
-    "category": "Поэзия",
-    "genres": [],
-    "annotation": "",
-    "rack": "2",
-    "shelf": "6",
-    "inventoryNumber": "B-0011",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0011.pdf",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
     "id": "B-0010",
-    "title": "рой 120 чб",
+    "title": "тест рой чб",
     "authors": [
-      "Ага"
+      "Ии"
     ],
     "year": 2026,
     "publisher": "",
-    "category": "Проза",
+    "category": "Художественная литература",
     "genres": [],
     "annotation": "",
-    "rack": "4",
-    "shelf": "7",
+    "rack": "1",
+    "shelf": "4",
     "inventoryNumber": "B-0010",
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0010.pdf",
     "published": true,
