@@ -19,25 +19,6 @@ export type Book = {
 
 export const books: Book[] = [
   {
-    "id": "B-0012",
-    "title": "рой тест сжатие",
-    "authors": [
-      "Вааа"
-    ],
-    "year": 2026,
-    "publisher": "",
-    "category": "Литература для детей и юношества",
-    "genres": [],
-    "annotation": "",
-    "rack": "4",
-    "shelf": "10",
-    "inventoryNumber": "B-0012",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0012.pdf",
-    "published": true,
-    "ocrUrl": "",
-    "processing": false
-  },
-  {
     "id": "B-0011",
     "title": "большая книга тест чб",
     "authors": [
