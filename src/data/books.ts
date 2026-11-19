@@ -19,6 +19,24 @@ export type Book = {
 
 export const books: Book[] = [
   {
+    "id": "B-0013",
+    "title": "большая книга тест",
+    "authors": [
+      "Еп"
+    ],
+    "year": 2026,
+    "publisher": "",
+    "category": "Поэзия",
+    "genres": [],
+    "annotation": "",
+    "rack": "2",
+    "shelf": "7",
+    "inventoryNumber": "B-0013",
+    "pdfUrl": "",
+    "published": true,
+    "ocrUrl": ""
+  },
+  {
     "id": "B-0012",
     "title": "рой повтор 2",
     "authors": [
