@@ -20,17 +20,17 @@ export type Book = {
 export const books: Book[] = [
   {
     "id": "B-0005",
-    "title": "тест без сжатия большая",
+    "title": "тест большая без сжатия чб",
     "authors": [
-      "Уа-уа"
+      "Упупуп"
     ],
     "year": 2026,
-    "publisher": "Ммм",
-    "category": "Естественные науки",
+    "publisher": "",
+    "category": "Драматургия",
     "genres": [],
-    "annotation": "должно заработать на этот раз без проблем",
-    "rack": "2",
-    "shelf": "5",
+    "annotation": "чб без сжатия после проверок багов",
+    "rack": "3",
+    "shelf": "3",
     "inventoryNumber": "B-0005",
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005.pdf",
     "published": true,
