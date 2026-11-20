@@ -19,24 +19,6 @@ export type Book = {
 
 export const books: Book[] = [
   {
-    "id": "B-0006",
-    "title": "тест большой книги без сжатия",
-    "authors": [
-      "Суп"
-    ],
-    "year": 2026,
-    "publisher": "",
-    "category": "Драматургия",
-    "genres": [],
-    "annotation": "",
-    "rack": "3",
-    "shelf": "7",
-    "inventoryNumber": "B-0006",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0006.pdf",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
     "id": "B-0005",
     "title": "тест без сжатия",
     "authors": [
