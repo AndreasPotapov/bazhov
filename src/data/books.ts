@@ -19,24 +19,6 @@ export type Book = {
 
 export const books: Book[] = [
   {
-    "id": "B-0005",
-    "title": "тест большая без сжатия чб",
-    "authors": [
-      "Упупуп"
-    ],
-    "year": 2026,
-    "publisher": "",
-    "category": "Драматургия",
-    "genres": [],
-    "annotation": "чб без сжатия после проверок багов",
-    "rack": "3",
-    "shelf": "3",
-    "inventoryNumber": "B-0005",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005.pdf",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
     "id": "B-0004",
     "title": "Сочинения в 3 томах. Том 3: Уральские были",
     "authors": [
