@@ -19,146 +19,20 @@ export type Book = {
 
 export const books: Book[] = [
   {
-    "id": "B-0014",
-    "title": "большая книга тест 3",
+    "id": "B-0005",
+    "title": "тест без сжатия",
     "authors": [
-      "Ауауа"
-    ],
-    "year": 2026,
-    "publisher": "Муж",
-    "category": "Периодические и продолжающиеся издания",
-    "genres": [],
-    "annotation": "",
-    "rack": "4",
-    "shelf": "2",
-    "inventoryNumber": "B-0014",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0014.pdf",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
-    "id": "B-0013",
-    "title": "большая книга тест",
-    "authors": [
-      "Еп"
-    ],
-    "year": 2026,
-    "publisher": "",
-    "category": "Поэзия",
-    "genres": [],
-    "annotation": "",
-    "rack": "2",
-    "shelf": "7",
-    "inventoryNumber": "B-0013",
-    "pdfUrl": "",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
-    "id": "B-0012",
-    "title": "рой повтор 2",
-    "authors": [
-      "Ычч"
-    ],
-    "year": 2026,
-    "publisher": "",
-    "category": "Учебная и методическая литература",
-    "genres": [],
-    "annotation": "",
-    "rack": "4",
-    "shelf": "3",
-    "inventoryNumber": "B-0012",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0012.pdf",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
-    "id": "B-0011",
-    "title": "рой повтор",
-    "authors": [
-      "Ммм"
-    ],
-    "year": 2026,
-    "publisher": "",
-    "category": "Устное народное творчество",
-    "genres": [],
-    "annotation": "",
-    "rack": "1",
-    "shelf": "3",
-    "inventoryNumber": "B-0011",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0011.pdf",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
-    "id": "B-0010",
-    "title": "рой тест после ошибки",
-    "authors": [
-      "Ели"
+      "Ппп"
     ],
     "year": 2026,
     "publisher": "",
     "category": "Проза",
     "genres": [],
     "annotation": "",
-    "rack": "2",
-    "shelf": "4",
-    "inventoryNumber": "B-0010",
-    "pdfUrl": "",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
-    "id": "B-0009",
-    "title": "рой 120 новая библиотека оптимизации",
-    "authors": [
-      "Ацаа"
-    ],
-    "year": 2026,
-    "publisher": "",
-    "category": "Литература по жанрам и темам",
-    "genres": [],
-    "annotation": "",
     "rack": "3",
-    "shelf": "4",
-    "inventoryNumber": "B-0009",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0009.pdf",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
-    "id": "B-0008",
-    "title": "рой 120 120 70",
-    "authors": [
-      "Ммцм"
-    ],
-    "year": 2026,
-    "publisher": "Ммцм",
-    "category": "Литература народов мира",
-    "genres": [],
-    "annotation": "",
-    "rack": "1",
-    "shelf": "10",
-    "inventoryNumber": "B-0008",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0008.pdf",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
-    "id": "B-0007",
-    "title": "рабочий рой 120 70",
-    "authors": [
-      "Ы"
-    ],
-    "year": 2026,
-    "publisher": "",
-    "category": "Поэзия",
-    "genres": [],
-    "annotation": "",
-    "rack": "3",
-    "shelf": "10",
-    "inventoryNumber": "B-0007",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0007.pdf",
+    "shelf": "2",
+    "inventoryNumber": "B-0005",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005.pdf",
     "published": true,
     "ocrUrl": ""
   },
