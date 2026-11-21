@@ -409,12 +409,23 @@ export default function App() {
       if (book.published === false) return false;
       if (!matchesSearch(book, query)) return false;
 
-      // Новая логика рубрикатора: если выбраны жанры — фильтруем по ним,
-      // иначе — по выбранным категориям.
-      if (selectedGenres.length > 0) {
-        if (!selectedGenres.some((g) => (book.genres || []).includes(g))) return false;
-      } else if (selectedCategories.length > 0) {
-        if (!selectedCategories.some((c) => (book.categories || []).includes(c))) return false;
+            // Если выбраны жанры или категории
+      if (selectedGenres.length > 0 || selectedCategories.length > 0) {
+        // Собираем все жанры, которые входят в выбранные категории
+        const categoryGenres = selectedCategories.flatMap(catName => {
+          const cat = RUBRICATOR.find(c => c.name === catName);
+          return cat ? cat.genres : [];
+        });
+        
+        // Объединяем выбранные вручную жанры и жанры из категорий
+        const allTargetGenres = [...new Set([...selectedGenres, ...categoryGenres])];
+        
+        // Книга подходит, если у неё есть хотя бы один из нужных жанров
+        // ИЛИ если она напрямую привязана к выбранной категории
+        const matchesGenre = allTargetGenres.length > 0 && allTargetGenres.some(g => (book.genres || []).includes(g));
+        const matchesCategory = selectedCategories.length > 0 && selectedCategories.some(c => (book.categories || []).includes(c));
+        
+        if (!matchesGenre && !matchesCategory) return false;
       }
 
       if (yearRange) {
