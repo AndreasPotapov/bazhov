@@ -14,11 +14,30 @@ export type Book = {
   pdfUrl?: string;
   pdfFileName?: string;
   published?: boolean;
-  ocrText?: string; 
   ocrUrl?: string;
 };
 
 export const books: Book[] = [
+  {
+    "id": "B-0005",
+    "title": "большая книга тест 4",
+    "authors": [
+      "Папу"
+    ],
+    "year": 2026,
+    "publisher": "",
+    "category": "Поэзия",
+    "genres": [
+      "Библиографические пособия"
+    ],
+    "annotation": "",
+    "rack": "3",
+    "shelf": "6",
+    "inventoryNumber": "B-0005",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005.pdf",
+    "published": true,
+    "ocrUrl": ""
+  },
   {
     "id": "B-0004",
     "title": "Сочинения в 3 томах. Том 3: Уральские были",
@@ -41,7 +60,8 @@ export const books: Book[] = [
     "shelf": "8",
     "inventoryNumber": "B-0004",
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0004.pdf",
-    "published": true
+    "published": true,
+    "ocrUrl": ""
   },
   {
     "id": "B-0003",
@@ -62,7 +82,8 @@ export const books: Book[] = [
     "shelf": "7",
     "inventoryNumber": "B-0003",
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0003.pdf",
-    "published": true
+    "published": true,
+    "ocrUrl": ""
   },
   {
     "id": "B-0002",
@@ -84,6 +105,7 @@ export const books: Book[] = [
     "shelf": "1",
     "inventoryNumber": "B-0002",
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0002.pdf",
-    "published": true
+    "published": true,
+    "ocrUrl": ""
   }
 ];
