@@ -19,6 +19,26 @@ export type Book = {
 
 export const books: Book[] = [
   {
+    "id": "B-0005",
+    "title": "большая книга тест 4",
+    "authors": [
+      "Папу"
+    ],
+    "year": 2026,
+    "publisher": "",
+    "category": "Поэзия",
+    "genres": [
+      "Библиографические пособия"
+    ],
+    "annotation": "",
+    "rack": "3",
+    "shelf": "6",
+    "inventoryNumber": "B-0005",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005.pdf",
+    "published": true,
+    "ocrUrl": ""
+  },
+  {
     "id": "B-0004",
     "title": "Сочинения в 3 томах. Том 3: Уральские были",
     "authors": [
