@@ -65,138 +65,141 @@ const RUBRICATOR = [
 ];
 
 // --- КОМПОНЕНТ РУБРИКАТОРА ---
-function RubricatorSelector({
-  selectedCategories,
-  selectedGenres,
-  onChange,
-}: {
-  selectedCategories: string[];
-  selectedGenres: string[];
-  onChange: (cats: string[], genres: string[]) => void;
+function RubricatorSelector({ 
+  selectedCategories, 
+  selectedGenres, 
+  onChange 
+}: { 
+  selectedCategories: string[]; 
+  selectedGenres: string[]; 
+  onChange: (cats: string[], genres: string[]) => void 
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [expanded, setExpanded] = useState<string[]>([]);
 
   const toggleCategory = (catName: string) => {
-    const next = selectedCategories.includes(catName)
-      ? selectedCategories.filter((c) => c !== catName)
-      : [...selectedCategories, catName];
-    onChange(next, selectedGenres);
+    const cat = RUBRICATOR.find(c => c.name === catName);
+    if (!cat) return;
+
+    if (selectedCategories.includes(catName)) {
+      // Отжимаем категорию: убираем её и все её жанры
+      onChange(
+        selectedCategories.filter(c => c !== catName),
+        selectedGenres.filter(g => !cat.genres.includes(g))
+      );
+    } else {
+      // Выбираем категорию: добавляем её и все её жанры
+      onChange(
+        [...selectedCategories, catName],
+        [...new Set([...selectedGenres, ...cat.genres])]
+      );
+    }
   };
 
-  const toggleGenre = (genre: string) => {
-    const next = selectedGenres.includes(genre)
-      ? selectedGenres.filter((g) => g !== genre)
-      : [...selectedGenres, genre];
-    onChange(selectedCategories, next);
+  const toggleGenre = (genreName: string, parentCatName: string) => {
+    const cat = RUBRICATOR.find(c => c.name === parentCatName);
+    if (!cat) return;
+
+    let newGenres;
+    let newCategories = [...selectedCategories];
+
+    if (selectedGenres.includes(genreName)) {
+      // Отжимаем жанр: убираем его из выбранных
+      newGenres = selectedGenres.filter(g => g !== genreName);
+      // Если отжали хотя бы один жанр, категория больше не может быть выбрана
+      newCategories = newCategories.filter(c => c !== parentCatName);
+    } else {
+      // Выбираем жанр: добавляем его
+      newGenres = [...selectedGenres, genreName];
+      // Проверяем, все ли жанры этой категории теперь выбраны
+      const allCatGenresSelected = cat.genres.every(g => newGenres.includes(g));
+      if (allCatGenresSelected && !newCategories.includes(parentCatName)) {
+        newCategories.push(parentCatName);
+      }
+    }
+
+    onChange(newCategories, newGenres);
   };
 
   const reset = () => onChange([], []);
 
-  const summary =
-    selectedCategories.length === 0 && selectedGenres.length === 0
-      ? "Все категории и жанры"
-      : `Выбрано: ${selectedCategories.length} кат., ${selectedGenres.length} жанров`;
-
   return (
-    <div style={{ position: "relative" }}>
-      <button
-        type="button"
-        className="category-dropdown-btn"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <span>{summary}</span>
-        <span aria-hidden="true">{isOpen ? "▲" : "▼"}</span>
+    <div className="dropdown-container" style={{ position: 'relative', zIndex: 50 }}>
+      <button type="button" className="dropdown-btn" onClick={() => setIsOpen(!isOpen)} style={{ width: '100%', textAlign: 'left', display: 'flex', justifyContent: 'space-between' }}>
+        <span>
+          {selectedCategories.length === 0 && selectedGenres.length === 0 
+            ? "Все категории и жанры" 
+            : `Выбрано: ${selectedCategories.length} кат., ${selectedGenres.length} жанров`}
+        </span>
+        <span>{isOpen ? "▲" : "▼"}</span>
       </button>
 
       {isOpen && (
-        <div className="category-dropdown-menu" style={{ maxHeight: 400 }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: 8,
-              paddingBottom: 8,
-              borderBottom: "1px solid var(--color-border)",
-            }}
-          >
-            <button
-              type="button"
-              className="secondary"
-              onClick={reset}
-              style={{ fontSize: 12, padding: "4px 8px" }}
-            >
-              Сбросить выбор
-            </button>
-            <button
-              type="button"
-              className="secondary"
-              onClick={() => setIsOpen(false)}
-              style={{ fontSize: 12, padding: "4px 8px" }}
-            >
-              Закрыть
-            </button>
+        <div style={{ 
+          position: 'absolute', 
+          top: '100%', 
+          left: 0, 
+          right: 0, 
+          zIndex: 1000, 
+          background: '#fff', 
+          border: '1px solid #ccc', 
+          borderRadius: '4px', 
+          padding: '8px',
+          maxHeight: '400px',
+          overflowY: 'auto',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>
+            <button type="button" className="btn-outline" onClick={reset} style={{ fontSize: '12px', padding: '4px 8px' }}>Сбросить выбор</button>
+            <button type="button" className="btn-secondary" onClick={() => setIsOpen(false)} style={{ fontSize: '12px', padding: '4px 8px' }}>Закрыть</button>
           </div>
 
-          {RUBRICATOR.map((cat) => {
+          {RUBRICATOR.map(cat => {
             const isExpanded = expanded.includes(cat.id);
             const isCatSelected = selectedCategories.includes(cat.name);
             return (
-              <div key={cat.id} style={{ marginBottom: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 0" }}>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpanded((prev) =>
-                        prev.includes(cat.id) ? prev.filter((x) => x !== cat.id) : [...prev, cat.id]
-                      )
-                    }
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                      width: 20,
-                      color: "var(--color-muted)",
-                      padding: 0,
-                      fontSize: 10,
-                    }}
+              <div key={cat.id} style={{ marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setExpanded(prev => prev.includes(cat.id) ? prev.filter(x => x !== cat.id) : [...prev, cat.id])} 
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', width: '20px', padding: 0, fontSize: '12px', color: '#666' }}
                   >
                     {isExpanded ? "▼" : "►"}
                   </button>
-                  <label
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      cursor: "pointer",
-                      fontWeight: 600,
-                      margin: 0,
-                    }}
+                  <div 
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', margin: 0 }} 
+                    onClick={() => toggleCategory(cat.name)}
                   >
-                    <input
-                      type="checkbox"
-                      checked={isCatSelected}
-                      onChange={() => toggleCategory(cat.name)}
-                      style={{ accentColor: "var(--color-green)" }}
+                    <input 
+                      type="checkbox" 
+                      checked={isCatSelected} 
+                      onChange={(e) => { e.stopPropagation(); toggleCategory(cat.name); }} 
+                      style={{ margin: 0, width: '16px', height: '16px', cursor: 'pointer' }}
                     />
-                    {cat.name}
-                  </label>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#333', textTransform: 'none' }}>
+                      {cat.name}
+                    </span>
+                  </div>
                 </div>
                 {isExpanded && (
-                  <div style={{ marginLeft: 28, display: "grid", gap: 4, marginTop: 4 }}>
-                    {cat.genres.map((g) => (
-                      <label
-                        key={g}
-                        style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "0.9rem", margin: 0 }}
+                  <div style={{ marginLeft: '28px', display: 'grid', gap: '4px', marginTop: '4px' }}>
+                    {cat.genres.map(g => (
+                      <div 
+                        key={g} 
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', margin: 0 }}
+                        onClick={() => toggleGenre(g, cat.name)}
                       >
-                        <input
-                          type="checkbox"
-                          checked={selectedGenres.includes(g)}
-                          onChange={() => toggleGenre(g)}
-                          style={{ accentColor: "var(--color-green)" }}
+                        <input 
+                          type="checkbox" 
+                          checked={selectedGenres.includes(g)} 
+                          onChange={(e) => { e.stopPropagation(); toggleGenre(g, cat.name); }} 
+                          style={{ margin: 0, width: '16px', height: '16px', cursor: 'pointer' }}
                         />
-                        {g}
-                      </label>
+                        <span style={{ color: '#555', textTransform: 'none', fontWeight: 'normal' }}>
+                          {g}
+                        </span>
+                      </div>
                     ))}
                   </div>
                 )}
