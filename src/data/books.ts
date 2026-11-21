@@ -78,7 +78,7 @@ export const books: Book[] = [
       "Бажов П. П."
     ],
     "year": 1986,
-    "publisher": "Москва",
+    "publisher": "Правда, Москва",
     "categories": [
       "Проза"
     ],
