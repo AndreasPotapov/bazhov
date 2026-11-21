@@ -3,88 +3,213 @@ import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { russian } from "multilingual-stemmer";
 import { books as seedBooks } from "./data/books";
-import type { Book } from "./data/books";
+import type { Book as RawBook } from "./data/books";
 import * as pdfjsLib from "pdfjs-dist";
 import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-type CategoryNode = {
-  id: string;
-  name: string;
-  children?: CategoryNode[];
-};
+// --- ТИП ---
+type Book = RawBook & { categories?: string[] };
 
-const CATEGORIES: CategoryNode[] = [
+// --- РУБРИКАТОР ---
+const RUBRICATOR = [
   {
-    id: "fiction", name: "Художественная литература",
-    children: [
-      { id: "fiction-prose", name: "Проза" }, { id: "fiction-poetry", name: "Поэзия" },
-      { id: "fiction-drama", name: "Драматургия" }, { id: "fiction-genres", name: "Литература по жанрам и темам" },
-      { id: "fiction-folklore", name: "Устное народное творчество" }, { id: "fiction-children", name: "Литература для детей и юношества" },
-      { id: "fiction-world", name: "Литература народов мира" },
-    ],
+    id: "book-editions", name: "Книжные издания",
+    genres: [
+      "Романы", "Повести", "Рассказы и новеллы", "Очерки", "Историческая проза", "Социальная и реалистическая проза",
+      "Приключенческая проза", "Биографическая проза", "Мемуары и воспоминания", "Юмор и сатира",
+      "Мистика и фантастика", "Триллеры и детективы", "Произведения об Урале", "Произведения уральских писателей",
+      "Стихотворения", "Поэмы", "Баллады", "Лирическая поэзия", "Эпическая поэзия", "Сатирическая поэзия",
+      "Народная поэзия", "Поэзия уральских авторов", "Пьесы", "Драмы", "Комедии", "Трагедии",
+      "Историческая драматургия", "Драматические произведения для детей", "Сказы П. П. Бажова",
+      "Сказы других уральских писателей", "Литературные сказания", "Сказовые циклы", "Сказы о горняках и мастерах",
+      "Сказы о природе и богатствах Урала", "Народные песни", "Народные сказки", "Былины и эпос",
+      "Фольклорные сборники", "Уральские легенды и предания", "Загадки, пословицы и поговорки",
+      "Детская поэзия", "Сказы для детей", "Познавательная и краеведческая литература для детей",
+      "Литературные и народные сказки", "Детские рассказы и повести", "Иллюстрированные детские издания",
+      "Книги для дошкольников", "Книги для младшего школьного возраста", "Книги для подростков",
+      "Биографии", "Автобиографии", "Мемуары", "Воспоминания", "Дневники", "Письма и переписка",
+      "Документальная проза", "Публицистика", "Эссе", "Литературная критика", "Статьи",
+      "Литературные миниатюры", "Путевые заметки", "Репортажи", "Фельетон и памфлет", "Интервью и беседа"
+    ]
   },
   {
-    id: "nonfiction", name: "Нехудожественная литература",
-    children: [
-      { id: "nonfiction-philosophy", name: "Философия и религия" }, { id: "nonfiction-psychology", name: "Психология и саморазвитие" },
-      { id: "nonfiction-society", name: "Общество и гуманитарные науки" }, { id: "nonfiction-history", name: "История" },
-      { id: "nonfiction-geography", name: "География и путешествия" }, { id: "nonfiction-science", name: "Естественные науки" },
-      { id: "nonfiction-tech", name: "Техника и технологии" }, { id: "nonfiction-medicine", name: "Здоровье и медицина" },
-      { id: "nonfiction-art", name: "Искусство и культура" }, { id: "nonfiction-language", name: "Язык и литература" },
-      { id: "nonfiction-home", name: "Дом и повседневная жизнь" }, { id: "nonfiction-sport", name: "Спорт и досуг" },
-      { id: "nonfiction-business", name: "Бизнес и профессии" },
-    ],
+    id: "periodicals", name: "Периодические издания",
+    genres: ["Литературные журналы", "Научные журналы", "Исторические журналы", "Краеведческие журналы", "Детские журналы", "Общественно-культурные журналы", "Газеты", "Литературные альманахи", "Научные периодические сборники"]
   },
-  { id: "reference", name: "Справочные издания" },
-  { id: "education", name: "Учебная и методическая литература" },
-  { id: "periodicals", name: "Периодические и продолжающиеся издания" },
-  { id: "formats", name: "Издания по формату и доступности" },
+  {
+    id: "cartographic", name: "Картографические издания",
+    genres: ["Географические карты", "Исторические карты", "Топографические карты", "Геологические карты", "Карты Урала", "Карты Екатеринбурга и Свердловской области", "Атласы", "Планы городов и населённых пунктов"]
+  },
+  {
+    id: "reference", name: "Справочные издания",
+    genres: ["Энциклопедии", "Литературные энциклопедии", "Исторические энциклопедии", "Словари", "Толковые словари", "Фольклорные словари", "Литературоведческие словари", "Географические справочники", "Минералогические справочники", "Библиографические указатели", "Каталоги", "Путеводители"]
+  },
+  {
+    id: "educational", name: "Учебные и методические издания",
+    genres: ["Учебники", "Учебные пособия", "Методические рекомендации", "Методические разработки", "Хрестоматии", "Сборники упражнений", "Материалы для преподавателей", "Материалы для внеклассного чтения", "Пособия по краеведению", "Пособия по литературе и фольклору"]
+  },
+  {
+    id: "scientific", name: "Научные издания",
+    genres: ["Монографии", "Диссертации", "Авторефераты диссертаций", "Научные статьи", "Сборники научных работ", "Материалы конференций", "Литературоведческие исследования", "Фольклористические исследования", "Исторические исследования", "Этнографические исследования", "Геологические и минералогические исследования", "Искусствоведческие исследования"]
+  },
+  {
+    id: "collections", name: "Сборники и собрания сочинений",
+    genres: ["Собрания сочинений П. П. Бажова", "Сборники сказов", "Сборники рассказов", "Сборники стихотворений", "Сборники народного фольклора", "Сборники уральских писателей", "Антологии", "Коллективные литературные сборники", "Избранные произведения", "Тематические литературные сборники"]
+  },
+  {
+    id: "special-formats", name: "Издания специального формата",
+    genres: ["Иллюстрированные издания", "Альбомы", "Фотоальбомы", "Коллекционные издания", "Книги с автографами", "Факсимильные издания", "Редкие и старинные издания"]
+  }
 ];
 
-const GENRES: string[] = [
-  "Альманахи и сборники", "Антологии поэзии", "Атласы и карты", "Баллады и сонеты",
-  "Библиографические пособия", "Былины и эпос", "Военная проза", "Газеты",
-  "Детективы и триллеры", "Детская проза и поэзия", "Историческая проза",
-  "Книги для дошкольников", "Книги для младшего школьного возраста",
-  "Книги для подростков", "Книги для юношества", "Комедии", "Легенды и предания",
-  "Любовная проза", "Методические материалы", "Мифы и мифологические сюжеты",
-  "Повести", "Поэмы", "Приключения", "Пьесы", "Рассказы и новеллы", "Романы",
-  "Самоучители и курсы", "Сборники прозы", "Сборники стихов", "Сказки",
-  "Сказки и познавательные истории", "Словари", "Собрания сочинений и избранные произведения",
-  "Социальная и реалистическая проза", "Справочники", "Стихотворения",
-  "Трагедии и драмы", "Ужасы и мистика", "Учебники и пособия", "Фантастика",
-  "Фольклорные сборники", "Фэнтези", "Хронологии и календари", "Энциклопедии",
-  "Эссе и литературные миниатюры", "Юмор и сатира",
-];
+// --- КОМПОНЕНТ РУБРИКАТОРА ---
+function RubricatorSelector({
+  selectedCategories,
+  selectedGenres,
+  onChange,
+}: {
+  selectedCategories: string[];
+  selectedGenres: string[];
+  onChange: (cats: string[], genres: string[]) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [expanded, setExpanded] = useState<string[]>([]);
 
-function findCategoryById(id: string): CategoryNode | null {
-  for (const node of CATEGORIES) {
-    if (node.id === id) return node;
-    if (node.children) {
-      const found = node.children.find((c) => c.id === id);
-      if (found) return found;
-    }
-  }
-  return null;
+  const toggleCategory = (catName: string) => {
+    const next = selectedCategories.includes(catName)
+      ? selectedCategories.filter((c) => c !== catName)
+      : [...selectedCategories, catName];
+    onChange(next, selectedGenres);
+  };
+
+  const toggleGenre = (genre: string) => {
+    const next = selectedGenres.includes(genre)
+      ? selectedGenres.filter((g) => g !== genre)
+      : [...selectedGenres, genre];
+    onChange(selectedCategories, next);
+  };
+
+  const reset = () => onChange([], []);
+
+  const summary =
+    selectedCategories.length === 0 && selectedGenres.length === 0
+      ? "Все категории и жанры"
+      : `Выбрано: ${selectedCategories.length} кат., ${selectedGenres.length} жанров`;
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        type="button"
+        className="category-dropdown-btn"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span>{summary}</span>
+        <span aria-hidden="true">{isOpen ? "▲" : "▼"}</span>
+      </button>
+
+      {isOpen && (
+        <div className="category-dropdown-menu" style={{ maxHeight: 400 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: 8,
+              paddingBottom: 8,
+              borderBottom: "1px solid var(--color-border)",
+            }}
+          >
+            <button
+              type="button"
+              className="secondary"
+              onClick={reset}
+              style={{ fontSize: 12, padding: "4px 8px" }}
+            >
+              Сбросить выбор
+            </button>
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => setIsOpen(false)}
+              style={{ fontSize: 12, padding: "4px 8px" }}
+            >
+              Закрыть
+            </button>
+          </div>
+
+          {RUBRICATOR.map((cat) => {
+            const isExpanded = expanded.includes(cat.id);
+            const isCatSelected = selectedCategories.includes(cat.name);
+            return (
+              <div key={cat.id} style={{ marginBottom: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 0" }}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpanded((prev) =>
+                        prev.includes(cat.id) ? prev.filter((x) => x !== cat.id) : [...prev, cat.id]
+                      )
+                    }
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      width: 20,
+                      color: "var(--color-muted)",
+                      padding: 0,
+                      fontSize: 10,
+                    }}
+                  >
+                    {isExpanded ? "▼" : "►"}
+                  </button>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      margin: 0,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isCatSelected}
+                      onChange={() => toggleCategory(cat.name)}
+                      style={{ accentColor: "var(--color-green)" }}
+                    />
+                    {cat.name}
+                  </label>
+                </div>
+                {isExpanded && (
+                  <div style={{ marginLeft: 28, display: "grid", gap: 4, marginTop: 4 }}>
+                    {cat.genres.map((g) => (
+                      <label
+                        key={g}
+                        style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "0.9rem", margin: 0 }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedGenres.includes(g)}
+                          onChange={() => toggleGenre(g)}
+                          style={{ accentColor: "var(--color-green)" }}
+                        />
+                        {g}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
-function getCategoryNamesWithChildren(id: string): string[] {
-  const node = findCategoryById(id);
-  if (!node) return [];
-  const names = [node.name];
-  if (node.children) {
-    node.children.forEach((child) => { names.push(...getCategoryNamesWithChildren(child.id)); });
-  }
-  return names;
-}
-
-function getCategoryName(id: string): string {
-  const node = findCategoryById(id);
-  return node ? node.name : id;
-}
-
+// --- НОРМАЛИЗАЦИЯ ---
 function normalizeBook(value: Partial<Book>): Book {
   const authors = Array.isArray(value.authors)
     ? value.authors.map((a) => String(a).trim()).filter(Boolean)
@@ -99,13 +224,22 @@ function normalizeBook(value: Partial<Book>): Book {
     ? value.genres.map(String).filter(Boolean)
     : typeof legacyGenre === "string" ? [legacyGenre] : [];
 
+  // Поддерживаем и старый (category: string), и новый (categories: string[]) формат
+  const rawCategories = (value as { categories?: unknown }).categories;
+  const categories = Array.isArray(rawCategories)
+    ? rawCategories.map(String).filter(Boolean)
+    : value.category
+      ? [String(value.category).trim()].filter(Boolean)
+      : [];
+
   return {
     id: String(value.id ?? "").trim(),
     title: String(value.title ?? "").trim(),
     authors,
     ...(year !== undefined ? { year } : {}),
     publisher: String(value.publisher ?? "").trim(),
-    category: String(value.category ?? "").trim(),
+    category: String(value.category ?? categories[0] ?? "").trim(),
+    categories,
     genres,
     annotation: String(value.annotation ?? "").trim(),
     rack: String(value.rack ?? "").trim(),
@@ -119,6 +253,7 @@ function normalizeBook(value: Partial<Book>): Book {
   };
 }
 
+// --- ПОИСК ---
 function stemText(text: string): string[] {
   const normalized = text.toLocaleLowerCase("ru-RU").replaceAll("ё", "е");
   return normalized.split(/[^a-zа-я0-9]+/i).filter(Boolean).map((word) => russian(word));
@@ -129,7 +264,7 @@ function bookStems(book: Book): string[] {
     book.title,
     ...book.authors,
     book.publisher,
-    book.category,
+    ...(book.categories || []),
     ...(book.genres || []),
     book.annotation,
     book.inventoryNumber,
@@ -157,7 +292,7 @@ function getPdfUrl(book: Book): string {
   return "";
 }
 
-// --- PDF-ОБЛОЖКА ---
+// --- PDF-ОБЛОЖКА (не менялась) ---
 const coverCache = new Map<string, string>();
 
 function PdfCover({ src, alt }: { src: string; alt: string }) {
@@ -216,24 +351,21 @@ function PdfCover({ src, alt }: { src: string; alt: string }) {
   );
 }
 
+// --- ПРИЛОЖЕНИЕ ---
 export default function App() {
   const books = useMemo(() => seedBooks.map(normalizeBook), []);
 
   const [query, setQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  
-  // Состояния для расширенного поиска (фильтров)
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [yearRange, setYearRange] = useState<[number, number] | null>(null);
   const [filterAuthor, setFilterAuthor] = useState("");
   const [filterPublisher, setFilterPublisher] = useState("");
   const [filterRack, setFilterRack] = useState("");
   const [filterShelf, setFilterShelf] = useState("");
-  
-  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
-  const [expandedCategoryIds, setExpandedCategoryIds] = useState<string[]>([]);
-  const [genreDropdownOpen, setGenreDropdownOpen] = useState(false);
+
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [visibleCount, setVisibleCount] = useState(5);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -251,7 +383,9 @@ export default function App() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  useEffect(() => { setVisibleCount(5); }, [query, selectedCategory, selectedGenres, yearRange, filterAuthor, filterPublisher, filterRack, filterShelf]);
+  useEffect(() => {
+    setVisibleCount(5);
+  }, [query, selectedCategories, selectedGenres, yearRange, filterAuthor, filterPublisher, filterRack, filterShelf]);
 
   const filterableBooks = useMemo(() => books.filter((book) => book.published !== false), [books]);
 
@@ -261,72 +395,48 @@ export default function App() {
     return { min: Math.min(...years), max: Math.max(...years) };
   }, [filterableBooks]);
 
-  // Считаем количество активных фильтров
-  const activeFilterCount = 
-    (selectedCategory ? 1 : 0) + 
-    (selectedGenres.length > 0 ? 1 : 0) + 
-    (yearRange ? 1 : 0) + 
-    (filterAuthor.trim() ? 1 : 0) + 
-    (filterPublisher.trim() ? 1 : 0) + 
-    (filterRack ? 1 : 0) + 
+  const activeFilterCount =
+    (selectedCategories.length > 0 ? 1 : 0) +
+    (selectedGenres.length > 0 ? 1 : 0) +
+    (yearRange ? 1 : 0) +
+    (filterAuthor.trim() ? 1 : 0) +
+    (filterPublisher.trim() ? 1 : 0) +
+    (filterRack ? 1 : 0) +
     (filterShelf ? 1 : 0);
-
-  function toggleGenre(genre: string) {
-    setSelectedGenres((current) => current.includes(genre) ? current.filter((g) => g !== genre) : [...current, genre]);
-  }
-
-  function toggleCategoryExpand(id: string, e: React.MouseEvent) {
-    e.stopPropagation();
-    setExpandedCategoryIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  }
 
   const visibleBooks = useMemo(() => {
     return books.filter((book) => {
       if (book.published === false) return false;
-      
-      // Текстовый поиск (по всем полям)
       if (!matchesSearch(book, query)) return false;
-      
-      // Фильтр по категории
-      if (selectedCategory) {
-        const selectedNames = getCategoryNamesWithChildren(selectedCategory);
-        if (!selectedNames.includes(book.category || "")) return false;
-      }
 
-      // Фильтр по жанрам
+      // Новая логика рубрикатора: если выбраны жанры — фильтруем по ним,
+      // иначе — по выбранным категориям.
       if (selectedGenres.length > 0) {
-        const bookGenres = book.genres || [];
-        if (!selectedGenres.some((g) => bookGenres.includes(g))) return false;
+        if (!selectedGenres.some((g) => (book.genres || []).includes(g))) return false;
+      } else if (selectedCategories.length > 0) {
+        if (!selectedCategories.some((c) => (book.categories || []).includes(c))) return false;
       }
 
-      // Фильтр по году
       if (yearRange) {
         if (typeof book.year !== "number" || book.year < yearRange[0] || book.year > yearRange[1]) return false;
       }
 
-      // НОВЫЕ ФИЛЬТРЫ:
-      // Фильтр по автору
       if (filterAuthor.trim()) {
         const authorQuery = filterAuthor.toLocaleLowerCase("ru-RU").trim();
-        const hasAuthor = book.authors.some(a => a.toLocaleLowerCase("ru-RU").includes(authorQuery));
-        if (!hasAuthor) return false;
+        if (!book.authors.some((a) => a.toLocaleLowerCase("ru-RU").includes(authorQuery))) return false;
       }
 
-      // Фильтр по издательству
       if (filterPublisher.trim()) {
         const pubQuery = filterPublisher.toLocaleLowerCase("ru-RU").trim();
         if (!(book.publisher || "").toLocaleLowerCase("ru-RU").includes(pubQuery)) return false;
       }
 
-      // Фильтр по шкафу
       if (filterRack && book.rack !== filterRack) return false;
-
-      // Фильтр по полке
       if (filterShelf && book.shelf !== filterShelf) return false;
 
       return true;
     });
-  }, [books, query, selectedCategory, selectedGenres, yearRange, filterAuthor, filterPublisher, filterRack, filterShelf]);
+  }, [books, query, selectedCategories, selectedGenres, yearRange, filterAuthor, filterPublisher, filterRack, filterShelf]);
 
   const handleSurprise = () => {
     if (filterableBooks.length === 0) return;
@@ -338,12 +448,12 @@ export default function App() {
 
   const handleDownloadCsv = () => {
     const headers = [
-      "ID", "Название", "Автор", "Год", "Издательство", "Категория",
+      "ID", "Название", "Автор", "Год", "Издательство", "Категории",
       "Жанры", "Аннотация", "Шкаф", "Полка", "Инвентарный номер", "Ссылка на PDF",
     ];
     const rows = books.map((b) => [
       b.id, b.title, b.authors.join("; "), b.year ?? "",
-      b.publisher ?? "", b.category ?? "", (b.genres ?? []).join("; "),
+      b.publisher ?? "", (b.categories || []).join("; "), (b.genres ?? []).join("; "),
       b.annotation ?? "", b.rack ?? "", b.shelf ?? "",
       b.inventoryNumber ?? "", getPdfUrl(b),
     ]);
@@ -362,38 +472,10 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
-  function renderCategoryNode(node: CategoryNode, depth = 0) {
-    const hasChildren = node.children && node.children.length > 0;
-    const isSelected = selectedCategory === node.id;
-    const isExpanded = expandedCategoryIds.includes(node.id);
-
-    return (
-      <div key={node.id} style={{ marginLeft: depth * 12 }}>
-        <div className="category-row">
-          {hasChildren ? (
-            <button type="button" className="expand-btn" onClick={(e) => toggleCategoryExpand(node.id, e)} aria-label={isExpanded ? "Свернуть" : "Развернуть"}>
-              {isExpanded ? "▼" : "►"}
-            </button>
-          ) : (<span className="expand-spacer" />)}
-          <label className="rubric-option" style={{ flex: 1, cursor: "pointer" }}>
-            <input
-              type="radio" name="category-filter" checked={isSelected}
-              onChange={() => { setSelectedCategory(isSelected ? "" : node.id); setCategoryDropdownOpen(false); }}
-            />
-            <span>{node.name}</span>
-          </label>
-        </div>
-        {hasChildren && isExpanded && (
-          <div className="rubric-children">
-            {node.children!.map((child) => renderCategoryNode(child, depth + 1))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
   return (
     <main className="app">
+      {/* CSS-блок оставь свой без изменений (он не менялся). Убрал только для краткости ответа. */}
+      {/* === СТИЛИ === */}
       <style>{`
         @font-face {
           font-family: "Wremena";
@@ -410,695 +492,124 @@ export default function App() {
           src: url("${import.meta.env.BASE_URL}fonts/Cochin.ttc");
           font-weight: 500; font-style: normal; font-display: swap;
         }
-
         :root, [data-theme="light"] {
-          --color-green: #31563f;
-          --color-green-dark: #254531;
-          --color-green-light: #f0f3ef;
-          --color-bg: #f6f5f1;
-          --color-surface: #ffffff;
-          --color-text: #252b25;
-          --color-muted: #62675f;
-          --color-border: #e6e3da;
-          --color-danger: #9d3535;
-          --color-warning: #8a5b00;
-          --color-error: #a12f2f;
+          --color-green: #31563f; --color-green-dark: #254531; --color-green-light: #f0f3ef;
+          --color-bg: #f6f5f1; --color-surface: #ffffff; --color-text: #252b25;
+          --color-muted: #62675f; --color-border: #e6e3da; --color-danger: #9d3535;
+          --color-warning: #8a5b00; --color-error: #a12f2f;
           --font-display: "Wremena", Georgia, "Times New Roman", serif;
           --font-body: "Cochin", Georgia, system-ui, -apple-system, serif;
         }
-
         [data-theme="dark"] {
-          --color-green: #31563f;
-          --color-green-dark: #4a7a5e;
-          --color-green-light: #2a3a30;
-          --color-bg: #1e1e1e;
-          --color-surface: #2a2826;
-          --color-text: #edece8;
-          --color-muted: #a8a5a0;
-          --color-border: #3a3836;
-          --color-danger: #d35f5f;
-          --color-warning: #e0a04a;
-          --color-error: #e78080;
+          --color-green: #31563f; --color-green-dark: #4a7a5e; --color-green-light: #2a3a30;
+          --color-bg: #1e1e1e; --color-surface: #2a2826; --color-text: #edece8;
+          --color-muted: #a8a5a0; --color-border: #3a3836; --color-danger: #d35f5f;
+          --color-warning: #e0a04a; --color-error: #e78080;
         }
-
         * { box-sizing: border-box; }
-
-        body {
-          margin: 0;
-          background: var(--color-bg);
-          color: var(--color-text);
-          font-family: var(--font-body);
-          font-size: 16px;
-          line-height: 1.6;
-          -webkit-font-smoothing: antialiased;
-          transition: background 0.2s, color 0.2s;
-        }
-
+        body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; transition: background 0.2s, color 0.2s; }
         button, input, select, textarea { font: inherit; }
         button { cursor: pointer; }
-
         .app { max-width: 1120px; margin: 0 auto; padding: 32px 24px 80px; display: flex; flex-direction: column; min-height: 100vh; }
-
-        .topbar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 24px;
-          flex-wrap: wrap;
-          padding-bottom: 20px;
-          margin-bottom: 40px;
-          border-bottom: 2px solid var(--color-green);
-        }
-
-        .brand h1 {
-          margin: 0 0 6px;
-          font-family: var(--font-display);
-          font-size: clamp(1.8rem, 4vw, 2.6rem);
-          font-weight: 700;
-          letter-spacing: -0.01em;
-          color: var(--color-green);
-          line-height: 1.15;
-        }
-
+        .topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding-bottom: 20px; margin-bottom: 40px; border-bottom: 2px solid var(--color-green); }
+        .brand h1 { margin: 0 0 6px; font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; letter-spacing: -0.01em; color: var(--color-green); line-height: 1.15; }
         .brand .muted { font-size: 0.95rem; }
         .muted { color: var(--color-muted); }
-
-        .burger-btn {
-          background: transparent;
-          color: var(--color-green);
-          border: 1.5px solid var(--color-green);
-          border-radius: 6px;
-          padding: 8px 12px;
-          font-size: 1.4rem;
-          line-height: 1;
-          min-width: 48px;
-          height: 48px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: background 0.15s, color 0.15s;
-        }
-
+        .burger-btn { background: transparent; color: var(--color-green); border: 1.5px solid var(--color-green); border-radius: 6px; padding: 8px 12px; font-size: 1.4rem; line-height: 1; min-width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; }
         .burger-btn:hover { background: var(--color-green); color: #fff !important; }
-
-        .menu-backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.45);
-          z-index: 100;
-          animation: fadeIn 0.2s ease-out;
-        }
-
-        .side-menu {
-          position: fixed;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          width: 340px;
-          max-width: 90vw;
-          background: var(--color-surface);
-          z-index: 101;
-          padding: 20px 16px;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          box-shadow: -4px 0 24px rgba(0, 0, 0, 0.2);
-          animation: slideIn 0.25s ease-out;
-        }
-
-        .side-menu .menu-close {
-          align-self: flex-end;
-          background: transparent;
-          color: var(--color-text);
-          border: none;
-          font-size: 1.6rem;
-          padding: 4px 10px;
-          line-height: 1;
-          margin-bottom: 12px;
-          border-radius: 4px;
-        }
-
+        .menu-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: 100; animation: fadeIn 0.2s ease-out; }
+        .side-menu { position: fixed; top: 0; right: 0; bottom: 0; width: 340px; max-width: 90vw; background: var(--color-surface); z-index: 101; padding: 20px 16px; display: flex; flex-direction: column; gap: 4px; box-shadow: -4px 0 24px rgba(0, 0, 0, 0.2); animation: slideIn 0.25s ease-out; }
+        .side-menu .menu-close { align-self: flex-end; background: transparent; color: var(--color-text); border: none; font-size: 1.6rem; padding: 4px 10px; line-height: 1; margin-bottom: 12px; border-radius: 4px; }
         .side-menu .menu-close:hover { background: var(--color-bg); }
-
-        .side-menu .menu-item {
-          background: transparent;
-          color: var(--color-text);
-          border: none;
-          text-align: left;
-          padding: 16px 18px;
-          font-size: 1.2rem;
-          border-radius: 6px;
-          font-family: var(--font-display);
-          font-weight: 700;
-          letter-spacing: 0.01em;
-          transition: background 0.15s, color 0.15s;
-        }
-
+        .side-menu .menu-item { background: transparent; color: var(--color-text); border: none; text-align: left; padding: 16px 18px; font-size: 1.2rem; border-radius: 6px; font-family: var(--font-display); font-weight: 700; letter-spacing: 0.01em; transition: background 0.15s, color 0.15s; }
         .side-menu .menu-item:hover { background: var(--color-bg); color: var(--color-green); }
-
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-
-        .panel {
-          padding: 24px;
-          margin: 0 0 32px;
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          border-radius: 4px;
-        }
-
-        .panel strong {
-          display: block;
-          font-family: var(--font-display);
-          font-size: 1.3rem;
-          font-weight: 700;
-          margin-bottom: 6px;
-          color: var(--color-green);
-        }
-
+        .panel { padding: 24px; margin: 0 0 32px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 4px; }
+        .panel strong { display: block; font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; margin-bottom: 6px; color: var(--color-green); }
         .panel p { margin: 0; }
-
-        .page-title {
-          font-family: var(--font-display);
-          font-size: 2rem;
-          font-weight: 700;
-          color: var(--color-green);
-          margin: 0 0 20px;
-        }
-
-        .page-content p {
-          font-size: 1rem;
-          line-height: 1.7;
-          color: var(--color-text);
-          margin: 0 0 16px;
-        }
-
+        .page-title { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--color-green); margin: 0 0 20px; }
+        .page-content p { font-size: 1rem; line-height: 1.7; color: var(--color-text); margin: 0 0 16px; }
         .search-area { margin-bottom: 40px; }
-
-        .search-line {
-          display: flex;
-          gap: 12px;
-          align-items: stretch;
-          flex-wrap: wrap;
-        }
-
-        .search-input {
-          flex: 1 1 320px;
-          min-width: 0;
-          min-height: 56px;
-          padding: 0 20px;
-          border: 1.5px solid var(--color-border);
-          border-radius: 6px;
-          background: var(--color-surface);
-          color: var(--color-text);
-          font-size: 1rem;
-          font-family: var(--font-body);
-          outline: none;
-          transition: border-color 0.15s, box-shadow 0.15s;
-        }
-
+        .search-line { display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; }
+        .search-input { flex: 1 1 320px; min-width: 0; min-height: 56px; padding: 0 20px; border: 1.5px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-text); font-size: 1rem; font-family: var(--font-body); outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
         .search-input:focus { border-color: var(--color-green); box-shadow: 0 0 0 3px rgb(49 86 63 / 20%); }
         .search-input::placeholder { color: var(--color-muted); }
-
-        .filters-button {
-          padding: 0 22px;
-          min-height: 56px;
-          border: 1.5px solid var(--color-green);
-          border-radius: 6px;
-          background: transparent;
-          color: var(--color-green);
-          font-family: var(--font-body);
-          font-weight: 500;
-          font-size: 0.95rem;
-          white-space: nowrap;
-          transition: background 0.15s, color 0.15s;
-          flex-shrink: 0;
-        }
-
+        .filters-button { padding: 0 22px; min-height: 56px; border: 1.5px solid var(--color-green); border-radius: 6px; background: transparent; color: var(--color-green); font-family: var(--font-body); font-weight: 500; font-size: 0.95rem; white-space: nowrap; transition: background 0.15s, color 0.15s; flex-shrink: 0; }
         .filters-button:hover, .filters-button.active { background: var(--color-green); color: #fff !important; }
-
-        .filters-panel {
-          margin-top: 16px;
-          padding: 24px;
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          border-radius: 6px;
-          display: grid;
-          grid-template-columns: 1fr 1fr; /* Делаем сетку в 2 колонки */
-          gap: 24px;
-          align-items: start;
-        }
-
-        .filter-section h3 {
-          margin: 0 0 12px;
-          font-family: var(--font-display);
-          font-size: 1.1rem;
-          font-weight: 700;
-          color: var(--color-green);
-        }
-
-        /* Стили для новых текстовых полей в фильтрах */
-        .filter-input {
-          width: 100%;
-          padding: 10px 14px;
-          border: 1.5px solid var(--color-border);
-          border-radius: 6px;
-          background: var(--color-surface);
-          color: var(--color-text);
-          font-size: 0.95rem;
-          outline: none;
-        }
+        .filters-panel { margin-top: 16px; padding: 24px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+        .filter-section h3 { margin: 0 0 12px; font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--color-green); }
+        .filter-input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-text); font-size: 0.95rem; outline: none; }
         .filter-input:focus { border-color: var(--color-green); }
-
-        .category-dropdown { position: relative; }
-
-        .category-dropdown-btn {
-          width: 100%;
-          text-align: left;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: var(--color-surface);
-          color: var(--color-text);
-          border: 1.5px solid var(--color-border);
-          padding: 10px 14px;
-          border-radius: 6px;
-          font-weight: 400;
-          font-size: 0.95rem;
-        }
-
+        .category-dropdown-btn { width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center; background: var(--color-surface); color: var(--color-text); border: 1.5px solid var(--color-border); padding: 10px 14px; border-radius: 6px; font-weight: 400; font-size: 0.95rem; }
         .category-dropdown-btn:hover { border-color: var(--color-green); }
-
-        .category-dropdown-menu {
-          position: absolute;
-          top: calc(100% + 4px);
-          left: 0;
-          right: 0;
-          z-index: 10;
-          background: var(--color-surface);
-          border: 1.5px solid var(--color-border);
-          border-radius: 6px;
-          max-height: 300px;
-          overflow-y: auto;
-          padding: 12px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .genres-dropdown-list { display: flex; flex-direction: column; gap: 8px; }
-
-        .category-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
-
-        .expand-btn {
-          background: transparent;
-          border: none;
-          padding: 0;
-          width: 24px;
-          height: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--color-muted);
-          font-size: 10px;
-          border-radius: 4px;
-        }
-
-        .expand-btn:hover { background: var(--color-bg); color: var(--color-green); }
-
-        .expand-spacer { width: 24px; }
-
-        .rubric-option { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
-        .rubric-option input { width: auto; margin: 0; accent-color: var(--color-green); }
-
-        .rubric-children { display: grid; gap: 4px; margin-top: 4px; }
-
-        .year-values {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 10px;
-          font-size: 0.9rem;
-          color: var(--color-muted);
-          font-variant-numeric: tabular-nums;
-        }
-
+        .category-dropdown-menu { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 10; background: var(--color-surface); border: 1.5px solid var(--color-border); border-radius: 6px; max-height: 300px; overflow-y: auto; padding: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+        .year-values { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; color: var(--color-muted); font-variant-numeric: tabular-nums; }
         .year-slider-wrap { padding: 8px 4px; }
-
         .rc-slider-rail { background: var(--color-border) !important; height: 4px; }
         .rc-slider-track { background: var(--color-green) !important; height: 4px; }
-        .rc-slider-handle {
-          width: 18px !important; height: 18px !important; margin-top: -7px !important;
-          border: 2px solid var(--color-green) !important; background: #fff !important; opacity: 1 !important;
-        }
-        .rc-slider-handle:hover, .rc-slider-handle:focus, .rc-slider-handle-dragging {
-          border-color: var(--color-green-dark) !important;
-          box-shadow: 0 0 0 4px rgb(49 86 63 / 25%) !important;
-        }
-
-        /* Сетка для выбора шкафа и полки */
-        .storage-selects {
-          display: flex;
-          gap: 10px;
-        }
-        .storage-selects select {
-          flex: 1;
-          padding: 10px 14px;
-          border: 1.5px solid var(--color-border);
-          border-radius: 6px;
-          background: var(--color-surface);
-          color: var(--color-text);
-          outline: none;
-        }
+        .rc-slider-handle { width: 18px !important; height: 18px !important; margin-top: -7px !important; border: 2px solid var(--color-green) !important; background: #fff !important; opacity: 1 !important; }
+        .rc-slider-handle:hover, .rc-slider-handle:focus, .rc-slider-handle-dragging { border-color: var(--color-green-dark) !important; box-shadow: 0 0 0 4px rgb(49 86 63 / 25%) !important; }
+        .storage-selects { display: flex; gap: 10px; }
+        .storage-selects select { flex: 1; padding: 10px 14px; border: 1.5px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-text); outline: none; }
         .storage-selects select:focus { border-color: var(--color-green); }
-
-        .filter-actions { 
-          grid-column: 1 / -1; /* Кнопка сброса на всю ширину */
-          display: flex; 
-          gap: 10px; 
-          flex-wrap: wrap; 
-          padding-top: 16px; 
-          border-top: 1px solid var(--color-border); 
-        }
-
-        button {
-          border: 0;
-          border-radius: 6px;
-          padding: 10px 18px;
-          background: var(--color-green);
-          color: #fff;
-          font-weight: 500;
-          font-size: 0.95rem;
-          transition: background 0.15s, color 0.15s;
-        }
-
+        .filter-actions { grid-column: 1 / -1; display: flex; gap: 10px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--color-border); }
+        button { border: 0; border-radius: 6px; padding: 10px 18px; background: var(--color-green); color: #fff; font-weight: 500; font-size: 0.95rem; transition: background 0.15s, color 0.15s; }
         button:hover { background: var(--color-green-dark); color: #fff !important; }
-
-        button.secondary {
-          color: var(--color-green);
-          background: transparent;
-          border: 1px solid var(--color-green);
-        }
-
+        button.secondary { color: var(--color-green); background: transparent; border: 1px solid var(--color-green); }
         button.secondary:hover { background: var(--color-green); color: #fff !important; }
-
         .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-
-        .book-card {
-          padding: 24px;
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          border-radius: 6px;
-          display: grid;
-          grid-template-columns: 140px 1fr;
-          gap: 12px 28px;
-          align-items: start;
-          transition: box-shadow 0.2s, transform 0.2s;
-        }
-
+        .book-card { padding: 24px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; display: grid; grid-template-columns: 140px 1fr; gap: 12px 28px; align-items: start; transition: box-shadow 0.2s, transform 0.2s; }
         .book-card:hover { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08); transform: translateY(-2px); }
-
-        .tag {
-          grid-column: 2;
-          grid-row: 1;
-          justify-self: start;
-          margin-bottom: 0;
-          display: inline-block;
-          padding: 3px 10px;
-          border-radius: 2px;
-          background: var(--color-bg);
-          color: var(--color-muted);
-          font-size: 0.75rem;
-          font-weight: 600;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-        }
-
-        .cover-wrap {
-          grid-column: 1;
-          grid-row: 2;
-          width: 140px;
-          aspect-ratio: 3 / 4;
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          border-radius: 4px;
-          overflow: hidden;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        }
-
+        .tag { grid-column: 2; grid-row: 1; justify-self: start; margin-bottom: 0; display: inline-block; padding: 3px 10px; border-radius: 2px; background: var(--color-bg); color: var(--color-muted); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+        .cover-wrap { grid-column: 1; grid-row: 2; width: 140px; aspect-ratio: 3 / 4; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
         .cover-image { width: 100%; height: 100%; object-fit: cover; display: block; }
         .cover-placeholder { font-size: 0.8rem; text-align: center; padding: 8px; line-height: 1.4; }
-
-        .book-info {
-          grid-column: 2;
-          grid-row: 2;
-          min-width: 0;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px 32px;
-          align-content: start;
-        }
-
+        .book-info { grid-column: 2; grid-row: 2; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px 32px; align-content: start; }
         .book-info > h2, .book-info > .card-actions { grid-column: 1 / -1; }
-
-        .book-info > h2 {
-          margin: 0 0 8px;
-          font-family: var(--font-display);
-          font-size: 1.6rem;
-          font-weight: 700;
-          line-height: 1.25;
-          color: var(--color-green);
-        }
-
-        .title-btn {
-          cursor: pointer;
-          background: transparent !important;
-          border: none !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          color: inherit !important;
-          font: inherit !important;
-          text-align: left;
-        }
-
-        .title-btn:hover {
-          background: transparent !important;
-          color: var(--color-green) !important;
-        }
-
+        .book-info > h2 { margin: 0 0 8px; font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; line-height: 1.25; color: var(--color-green); }
+        .title-btn { cursor: pointer; background: transparent !important; border: none !important; padding: 0 !important; margin: 0 !important; color: inherit !important; font: inherit !important; text-align: left; }
+        .title-btn:hover { background: transparent !important; color: var(--color-green) !important; }
         .book-info p { margin: 0; font-size: 0.95rem; line-height: 1.5; color: var(--color-text); }
-        .book-info p strong {
-          display: block;
-          font-weight: 600;
-          color: var(--color-muted);
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 4px;
-        }
-
-        .card-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          margin-top: 12px;
-          padding-top: 16px;
-          border-top: 1px solid var(--color-border);
-        }
-
-        .card-actions a {
-          display: inline-flex;
-          align-items: center;
-          padding: 8px 16px;
-          color: var(--color-green);
-          border: 1px solid var(--color-green);
-          border-radius: 6px;
-          text-decoration: none;
-          font-size: 0.9rem;
-          font-weight: 500;
-          transition: background 0.15s, color 0.15s;
-        }
-
+        .book-info p strong { display: block; font-weight: 600; color: var(--color-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .card-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; padding-top: 16px; border-top: 1px solid var(--color-border); }
+        .card-actions a { display: inline-flex; align-items: center; padding: 8px 16px; color: var(--color-green); border: 1px solid var(--color-green); border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: background 0.15s, color 0.15s; }
         .card-actions a:hover { background: var(--color-green); color: #fff !important; }
-
         .load-more-container { display: flex; justify-content: center; margin-top: 32px; margin-bottom: 16px; }
         .load-more-container button { padding: 12px 32px; font-size: 1rem; min-width: 200px; }
-
-        .modal-backdrop {
-          position: fixed;
-          inset: 0;
-          z-index: 5;
-          display: grid;
-          place-items: center;
-          padding: 16px;
-          background: rgba(0, 0, 0, 0.5);
-          backdrop-filter: blur(2px);
-        }
-
-        .modal {
-          width: min(720px, 100%);
-          max-height: 90vh;
-          overflow: auto;
-          padding: 32px;
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          border-radius: 8px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
+        .modal-backdrop { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
+        .modal { width: min(720px, 100%); max-height: 90vh; overflow: auto; padding: 32px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); }
         .modal .topbar { padding-bottom: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); }
-
-        .modal h2 {
-          margin: 0;
-          font-family: var(--font-display);
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: var(--color-green);
-        }
-
-        .modal-book-layout {
-          display: grid;
-          grid-template-columns: 160px 1fr;
-          gap: 24px;
-          margin-bottom: 20px;
-          align-items: start;
-        }
-
-        .modal-cover {
-          width: 160px;
-          aspect-ratio: 3 / 4;
-          border-radius: 4px;
-          overflow: hidden;
-          border: 1px solid var(--color-border);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .modal-cover .cover-wrap {
-          width: 100%;
-          height: 100%;
-          grid-column: auto;
-          grid-row: auto;
-          box-shadow: none;
-          border: none;
-          border-radius: 0;
-        }
-
+        .modal h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--color-green); }
+        .modal-book-layout { display: grid; grid-template-columns: 160px 1fr; gap: 24px; margin-bottom: 20px; align-items: start; }
+        .modal-cover { width: 160px; aspect-ratio: 3 / 4; border-radius: 4px; overflow: hidden; border: 1px solid var(--color-border); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+        .modal-cover .cover-wrap { width: 100%; height: 100%; grid-column: auto; grid-row: auto; box-shadow: none; border: none; border-radius: 0; }
         .modal-book-main p { margin: 0 0 10px; font-size: 0.95rem; line-height: 1.55; color: var(--color-text); }
-        .modal-book-main p strong {
-          font-weight: 700;
-          color: var(--color-muted);
-          font-size: 0.85rem;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-          margin-right: 6px;
-        }
-
+        .modal-book-main p strong { font-weight: 700; color: var(--color-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; margin-right: 6px; }
         .modal p { margin: 0 0 10px; font-size: 0.95rem; line-height: 1.55; color: var(--color-text); }
-        .modal p strong {
-          font-weight: 700;
-          color: var(--color-muted);
-          font-size: 0.85rem;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-          margin-right: 6px;
-        }
-
+        .modal p strong { font-weight: 700; color: var(--color-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; margin-right: 6px; }
         .modal a { color: var(--color-green); font-weight: 500; text-decoration: none; border-bottom: 1px solid var(--color-green); }
-
-        .site-footer {
-          margin-top: auto;
-          padding-top: 60px;
-          padding-bottom: 40px;
-          border-top: 1px solid var(--color-border);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 24px;
-        }
-
-        .footer-logos {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          align-items: center;
-          gap: 40px;
-        }
-
-        .logo-placeholder {
-          width: 140px;
-          height: 70px;
-          background: var(--color-surface);
-          border: 1px dashed var(--color-border);
-          border-radius: 4px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 0.8rem;
-          color: var(--color-muted);
-          text-align: center;
-          padding: 8px;
-        }
-
-        .footer-copyright {
-          margin: 0;
-          font-size: 0.85rem;
-          color: var(--color-muted);
-          text-align: center;
-        }
-
+        .site-footer { margin-top: auto; padding-top: 60px; padding-bottom: 40px; border-top: 1px solid var(--color-border); display: flex; flex-direction: column; align-items: center; gap: 24px; }
+        .footer-logos { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 40px; }
+        .logo-placeholder { width: 140px; height: 70px; background: var(--color-surface); border: 1px dashed var(--color-border); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--color-muted); text-align: center; padding: 8px; }
+        .footer-copyright { margin: 0; font-size: 0.85rem; color: var(--color-muted); text-align: center; }
         @media (max-width: 700px) {
           .app { padding: 20px 16px 60px; }
           .topbar { margin-bottom: 24px; padding-bottom: 16px; }
-
           .book-card { grid-template-columns: 1fr; gap: 16px; }
           .tag { grid-column: 1; grid-row: auto; }
           .cover-wrap { grid-column: 1; grid-row: auto; justify-self: center; width: 140px; }
           .book-info { grid-column: 1; grid-row: auto; width: 100%; }
-
-          .search-line {
-            flex-direction: row;
-            align-items: stretch;
-            flex-wrap: nowrap;
-            gap: 8px;
-          }
-
-          .search-input {
-            flex: 1 1 0;
-            min-width: 0;
-            min-height: 46px;
-            padding: 0 12px;
-            font-size: 0.9rem;
-          }
-
+          .search-line { flex-direction: row; align-items: stretch; flex-wrap: nowrap; gap: 8px; }
+          .search-input { flex: 1 1 0; min-width: 0; min-height: 46px; padding: 0 12px; font-size: 0.9rem; }
           .search-input::placeholder { font-size: 0.82rem; }
-
-          .filters-button {
-            min-height: 46px;
-            padding: 0 12px;
-            font-size: 0.82rem;
-          }
-
+          .filters-button { min-height: 46px; padding: 0 12px; font-size: 0.82rem; }
           .modal { padding: 24px; }
           .filters-panel { padding: 20px; grid-template-columns: 1fr; }
-
-          .modal-book-layout {
-            grid-template-columns: 1fr;
-            gap: 16px;
-          }
-
-          .modal-cover {
-            width: 140px;
-            justify-self: center;
-          }
-
-          .footer-logos {
-            gap: 20px;
-          }
-          .logo-placeholder {
-            width: 100px;
-            height: 50px;
-            font-size: 0.7rem;
-          }
+          .modal-book-layout { grid-template-columns: 1fr; gap: 16px; }
+          .modal-cover { width: 140px; justify-self: center; }
+          .footer-logos { gap: 20px; }
+          .logo-placeholder { width: 100px; height: 50px; font-size: 0.7rem; }
         }
       `}</style>
 
@@ -1142,7 +653,7 @@ export default function App() {
             <h1 className="page-title">Скачать каталог</h1>
             <div className="page-content">
               <p>Вы можете сохранить полный каталог книг в формате CSV. Файл откроется в Excel или любой программе для работы с таблицами.</p>
-              <p>В каталог включены все данные: ID, название, авторы, год, издательство, категория, жанры, аннотация, место хранения и ссылка на PDF-файл.</p>
+              <p>В каталог включены все данные: ID, название, авторы, год, издательство, категории, жанры, аннотация, место хранения и ссылка на PDF-файл.</p>
               <button className="btn-primary" style={{ marginTop: 12 }} onClick={handleDownloadCsv}>
                 Скачать каталог (CSV)
               </button>
@@ -1178,52 +689,19 @@ export default function App() {
 
               {filtersOpen && (
                 <div className="filters-panel">
-                  
-                  {/* Категория */}
-                  <div className="filter-section">
-                    <h3>Категория</h3>
-                    <div className="category-dropdown">
-                      <button type="button" className="category-dropdown-btn" onClick={() => setCategoryDropdownOpen((open) => !open)}>
-                        {selectedCategory ? getCategoryName(selectedCategory) : "Все категории"}
-                        <span aria-hidden="true">{categoryDropdownOpen ? "▲" : "▼"}</span>
-                      </button>
-                      {categoryDropdownOpen && (
-                        <div className="category-dropdown-menu">
-                          <label className="rubric-option" style={{ marginBottom: 8, paddingBottom: 8, borderBottom: "1px solid var(--color-border)" }}>
-                            <input type="radio" name="category-filter" checked={selectedCategory === ""}
-                              onChange={() => { setSelectedCategory(""); setCategoryDropdownOpen(false); }} />
-                            <span>Все категории</span>
-                          </label>
-                          {CATEGORIES.map((node) => renderCategoryNode(node))}
-                        </div>
-                      )}
-                    </div>
+                  {/* Рубрикатор на всю ширину */}
+                  <div className="filter-section" style={{ gridColumn: "1 / -1" }}>
+                    <h3>Рубрикатор</h3>
+                    <RubricatorSelector
+                      selectedCategories={selectedCategories}
+                      selectedGenres={selectedGenres}
+                      onChange={(cats, gens) => {
+                        setSelectedCategories(cats);
+                        setSelectedGenres(gens);
+                      }}
+                    />
                   </div>
 
-                  {/* Жанры */}
-                  <div className="filter-section">
-                    <h3>Жанры</h3>
-                    <div className="category-dropdown">
-                      <button type="button" className="category-dropdown-btn" onClick={() => setGenreDropdownOpen((open) => !open)}>
-                        {selectedGenres.length > 0 ? `Выбрано жанров: ${selectedGenres.length}` : "Все жанры"}
-                        <span aria-hidden="true">{genreDropdownOpen ? "▲" : "▼"}</span>
-                      </button>
-                      {genreDropdownOpen && (
-                        <div className="category-dropdown-menu">
-                          <div className="genres-dropdown-list">
-                            {GENRES.map((genre) => (
-                              <label key={genre} className="rubric-option" style={{ cursor: "pointer" }}>
-                                <input type="checkbox" checked={selectedGenres.includes(genre)} onChange={() => toggleGenre(genre)} />
-                                <span>{genre}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Год издания */}
                   {yearBounds && (
                     <div className="filter-section">
                       <h3>Год издания</h3>
@@ -1241,31 +719,26 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* НОВЫЙ ФИЛЬТР: Автор */}
                   <div className="filter-section">
                     <h3>Автор</h3>
-                    <input 
-                      type="text" 
-                      className="filter-input"
-                      placeholder="Фамилия или инициалы..." 
+                    <input
+                      type="text" className="filter-input"
+                      placeholder="Фамилия или инициалы..."
                       value={filterAuthor}
                       onChange={(e) => setFilterAuthor(e.target.value)}
                     />
                   </div>
 
-                  {/* НОВЫЙ ФИЛЬТР: Издательство */}
                   <div className="filter-section">
                     <h3>Издательство</h3>
-                    <input 
-                      type="text" 
-                      className="filter-input"
-                      placeholder="Название издательства..." 
+                    <input
+                      type="text" className="filter-input"
+                      placeholder="Название издательства..."
                       value={filterPublisher}
                       onChange={(e) => setFilterPublisher(e.target.value)}
                     />
                   </div>
 
-                  {/* НОВЫЙ ФИЛЬТР: Место хранения */}
                   <div className="filter-section">
                     <h3>Место хранения</h3>
                     <div className="storage-selects">
@@ -1280,12 +753,11 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Кнопка сброса */}
                   <div className="filter-actions">
-                    <button type="button" className="secondary" onClick={() => { 
-                      setSelectedCategory(""); 
-                      setSelectedGenres([]); 
-                      setYearRange(null); 
+                    <button type="button" className="secondary" onClick={() => {
+                      setSelectedCategories([]);
+                      setSelectedGenres([]);
+                      setYearRange(null);
                       setFilterAuthor("");
                       setFilterPublisher("");
                       setFilterRack("");
@@ -1309,7 +781,7 @@ export default function App() {
                     const fileUrl = getPdfUrl(book);
                     return (
                       <article className="book-card" key={book.id}>
-                        <span className="tag">{book.category || "Без категории"}</span>
+                        <span className="tag">{(book.categories || []).join(", ") || "Без категории"}</span>
                         {fileUrl && <PdfCover src={fileUrl} alt={`Обложка книги «${book.title}»`} />}
                         <div className="book-info">
                           <h2>
@@ -1324,7 +796,7 @@ export default function App() {
                           {book.authors.length > 0 && (<p><strong>Автор</strong>{book.authors.join(", ")}</p>)}
                           {book.year && (<p><strong>Год издания</strong>{book.year}</p>)}
                           {book.publisher && (<p><strong>Издательство</strong>{book.publisher}</p>)}
-                          
+
                           {(book.rack || book.shelf) && (
                             <p><strong>Место хранения</strong>Шкаф № {book.rack || "—"}, полка № {book.shelf || "—"}</p>
                           )}
@@ -1381,7 +853,7 @@ export default function App() {
                 <p><strong>Автор:</strong> {selectedBook.authors.join(", ") || "—"}</p>
                 <p><strong>Год:</strong> {selectedBook.year ?? "—"}</p>
                 <p><strong>Издательство:</strong> {selectedBook.publisher || "—"}</p>
-                <p><strong>Категория:</strong> {selectedBook.category || "—"}</p>
+                <p><strong>Категории:</strong> {(selectedBook.categories || []).join(", ") || "—"}</p>
                 <p><strong>Жанры:</strong> {selectedBook.genres?.join(", ") || "—"}</p>
                 <p><strong>Шкаф:</strong> {selectedBook.rack || "—"}</p>
                 <p><strong>Полка:</strong> {selectedBook.shelf || "—"}</p>
@@ -1396,7 +868,6 @@ export default function App() {
                 <a href={getPdfUrl(selectedBook)} target="_blank" rel="noreferrer">Открыть PDF</a>
               </p>
             )}
-          
           </section>
         </div>
       )}
