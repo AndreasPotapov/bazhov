@@ -20,30 +20,6 @@ export type Book = {
 
 export const books: Book[] = [
   {
-    "id": "B-0005",
-    "title": "большая книга тест 7",
-    "authors": [
-      "Пкпп"
-    ],
-    "year": 2026,
-    "publisher": "",
-    "categories": [
-      "Книжные издания",
-      "Картографические издания"
-    ],
-    "category": "Книжные издания",
-    "genres": [
-      "Топографические карты"
-    ],
-    "annotation": "",
-    "rack": "3",
-    "shelf": "1",
-    "inventoryNumber": "B-0005",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005.pdf",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
     "id": "B-0004",
     "title": "Сочинения в 3 томах. Том 3: Уральские были",
     "authors": [
