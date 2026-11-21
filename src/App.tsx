@@ -100,7 +100,7 @@ function RubricatorSelector({
     const cat = RUBRICATOR.find(c => c.name === parentCatName);
     if (!cat) return;
 
-    let newGenres;
+    let newGenres: string[];
     let newCategories = [...selectedCategories];
 
     if (selectedGenres.includes(genreName)) {
