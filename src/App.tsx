@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { russian } from "multilingual-stemmer";
-import { books as seedBooks } from "./data/books";
+import { books as seedBooks } from "./data/scanned-books";
 import type { Book as RawBook } from "./data/books";
 import * as pdfjsLib from "pdfjs-dist";
 import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
