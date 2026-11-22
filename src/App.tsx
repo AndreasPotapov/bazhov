@@ -3,14 +3,32 @@ import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { russian } from "multilingual-stemmer";
 import { books as seedBooks } from "./data/books";
-import type { Book as RawBook } from "./data/books";
 import * as pdfjsLib from "pdfjs-dist";
 import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-// --- ТИП ---
-type Book = RawBook & { categories?: string[] };
+// --- ТИП (полный, чтобы TS не ругался) ---
+type Book = {
+  id: string;
+  title: string;
+  authors: string[];
+  year?: number;
+  publisher?: string;
+  category?: string;
+  categories?: string[];
+  genres?: string[];
+  annotation?: string;
+  shelf?: string;
+  rack?: string;
+  inventoryNumber?: string;
+  pdfPath?: string;
+  pdfUrl?: string;
+  pdfFileName?: string;
+  published?: boolean;
+  ocrUrl?: string;
+  processing?: boolean;
+};
 
 // --- РУБРИКАТОР ---
 const RUBRICATOR = [
@@ -82,13 +100,11 @@ function RubricatorSelector({
     if (!cat) return;
 
     if (selectedCategories.includes(catName)) {
-      // Отжимаем категорию: убираем её и все её жанры
       onChange(
         selectedCategories.filter(c => c !== catName),
         selectedGenres.filter(g => !cat.genres.includes(g))
       );
     } else {
-      // Выбираем категорию: добавляем её и все её жанры
       onChange(
         [...selectedCategories, catName],
         [...new Set([...selectedGenres, ...cat.genres])]
@@ -104,14 +120,10 @@ function RubricatorSelector({
     let newCategories = [...selectedCategories];
 
     if (selectedGenres.includes(genreName)) {
-      // Отжимаем жанр: убираем его из выбранных
       newGenres = selectedGenres.filter(g => g !== genreName);
-      // Если отжали хотя бы один жанр, категория больше не может быть выбрана
       newCategories = newCategories.filter(c => c !== parentCatName);
     } else {
-      // Выбираем жанр: добавляем его
       newGenres = [...selectedGenres, genreName];
-      // Проверяем, все ли жанры этой категории теперь выбраны
       const allCatGenresSelected = cat.genres.every(g => newGenres.includes(g));
       if (allCatGenresSelected && !newCategories.includes(parentCatName)) {
         newCategories.push(parentCatName);
@@ -125,7 +137,7 @@ function RubricatorSelector({
 
   return (
     <div className="dropdown-container" style={{ position: 'relative', zIndex: 50 }}>
-      <button type="button" className="dropdown-btn" onClick={() => setIsOpen(!isOpen)} style={{ width: '100%', textAlign: 'left', display: 'flex', justifyContent: 'space-between' }}>
+      <button type="button" className="category-dropdown-btn" onClick={() => setIsOpen(!isOpen)}>
         <span>
           {selectedCategories.length === 0 && selectedGenres.length === 0 
             ? "Все категории и жанры" 
@@ -136,22 +148,14 @@ function RubricatorSelector({
 
       {isOpen && (
         <div style={{ 
-          position: 'absolute', 
-          top: '100%', 
-          left: 0, 
-          right: 0, 
-          zIndex: 1000, 
-          background: '#fff', 
-          border: '1px solid #ccc', 
-          borderRadius: '4px', 
-          padding: '8px',
-          maxHeight: '400px',
-          overflowY: 'auto',
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000, 
+          background: '#fff', border: '1px solid #ccc', borderRadius: '4px', 
+          padding: '8px', maxHeight: '400px', overflowY: 'auto', 
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>
-            <button type="button" className="btn-outline" onClick={reset} style={{ fontSize: '12px', padding: '4px 8px' }}>Сбросить выбор</button>
-            <button type="button" className="btn-secondary" onClick={() => setIsOpen(false)} style={{ fontSize: '12px', padding: '4px 8px' }}>Закрыть</button>
+            <button type="button" className="secondary" onClick={reset} style={{ fontSize: '12px', padding: '4px 8px' }}>Сбросить выбор</button>
+            <button type="button" className="secondary" onClick={() => setIsOpen(false)} style={{ fontSize: '12px', padding: '4px 8px' }}>Закрыть</button>
           </div>
 
           {RUBRICATOR.map(cat => {
@@ -167,38 +171,17 @@ function RubricatorSelector({
                   >
                     {isExpanded ? "▼" : "►"}
                   </button>
-                  <div 
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', margin: 0 }} 
-                    onClick={() => toggleCategory(cat.name)}
-                  >
-                    <input 
-                      type="checkbox" 
-                      checked={isCatSelected} 
-                      onChange={(e) => { e.stopPropagation(); toggleCategory(cat.name); }} 
-                      style={{ margin: 0, width: '16px', height: '16px', cursor: 'pointer' }}
-                    />
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#333', textTransform: 'none' }}>
-                      {cat.name}
-                    </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }} onClick={() => toggleCategory(cat.name)}>
+                    <input type="checkbox" checked={isCatSelected} onChange={(e) => { e.stopPropagation(); toggleCategory(cat.name); }} style={{ margin: 0, width: '16px', height: '16px' }} />
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#333' }}>{cat.name}</span>
                   </div>
                 </div>
                 {isExpanded && (
                   <div style={{ marginLeft: '28px', display: 'grid', gap: '4px', marginTop: '4px' }}>
                     {cat.genres.map(g => (
-                      <div 
-                        key={g} 
-                        style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', margin: 0 }}
-                        onClick={() => toggleGenre(g, cat.name)}
-                      >
-                        <input 
-                          type="checkbox" 
-                          checked={selectedGenres.includes(g)} 
-                          onChange={(e) => { e.stopPropagation(); toggleGenre(g, cat.name); }} 
-                          style={{ margin: 0, width: '16px', height: '16px', cursor: 'pointer' }}
-                        />
-                        <span style={{ color: '#555', textTransform: 'none', fontWeight: 'normal' }}>
-                          {g}
-                        </span>
+                      <div key={g} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }} onClick={() => toggleGenre(g, cat.name)}>
+                        <input type="checkbox" checked={selectedGenres.includes(g)} onChange={(e) => { e.stopPropagation(); toggleGenre(g, cat.name); }} style={{ margin: 0, width: '16px', height: '16px' }} />
+                        <span style={{ color: '#555' }}>{g}</span>
                       </div>
                     ))}
                   </div>
@@ -213,33 +196,30 @@ function RubricatorSelector({
 }
 
 // --- НОРМАЛИЗАЦИЯ ---
-function normalizeBook(value: Partial<Book>): Book {
+function normalizeBook(value: any): Book {
   const authors = Array.isArray(value.authors)
-    ? value.authors.map((a) => String(a).trim()).filter(Boolean)
+    ? value.authors.map((a: any) => String(a).trim()).filter(Boolean)
     : String(value.authors ?? "").split(/[|;]/).map((a) => a.trim()).filter(Boolean);
 
   const year = typeof value.year === "number"
     ? value.year
     : value.year && /^\d{1,4}$/.test(String(value.year)) ? Number(value.year) : undefined;
 
-  const legacyGenre = (value as Record<string, unknown>).genre;
+  const legacyGenre = value.genre;
   const genres = Array.isArray(value.genres)
     ? value.genres.map(String).filter(Boolean)
     : typeof legacyGenre === "string" ? [legacyGenre] : [];
 
-  // Поддерживаем и старый (category: string), и новый (categories: string[]) формат
-  const rawCategories = (value as { categories?: unknown }).categories;
+  const rawCategories = value.categories;
   const categories = Array.isArray(rawCategories)
     ? rawCategories.map(String).filter(Boolean)
-    : value.category
-      ? [String(value.category).trim()].filter(Boolean)
-      : [];
+    : value.category ? [String(value.category).trim()].filter(Boolean) : [];
 
   return {
     id: String(value.id ?? "").trim(),
     title: String(value.title ?? "").trim(),
     authors,
-    ...(year !== undefined ? { year } : {}),
+    year,
     publisher: String(value.publisher ?? "").trim(),
     category: String(value.category ?? categories[0] ?? "").trim(),
     categories,
@@ -253,6 +233,7 @@ function normalizeBook(value: Partial<Book>): Book {
     ocrUrl: String(value.ocrUrl ?? "").trim(),
     pdfFileName: String(value.pdfFileName ?? "").trim(),
     published: value.published !== false,
+    processing: value.processing,
   };
 }
 
@@ -264,16 +245,9 @@ function stemText(text: string): string[] {
 
 function bookStems(book: Book): string[] {
   const text = [
-    book.title,
-    ...book.authors,
-    book.publisher,
-    ...(book.categories || []),
-    ...(book.genres || []),
-    book.annotation,
-    book.inventoryNumber,
-    book.year?.toString(),
-    book.rack,
-    book.shelf,
+    book.title, ...book.authors, book.publisher, ...(book.categories || []),
+    ...(book.genres || []), book.annotation, book.inventoryNumber,
+    book.year?.toString(), book.rack, book.shelf,
   ].filter(Boolean).join(" ");
   return stemText(text);
 }
@@ -295,7 +269,7 @@ function getPdfUrl(book: Book): string {
   return "";
 }
 
-// --- PDF-ОБЛОЖКА (не менялась) ---
+// --- PDF-ОБЛОЖКА ---
 const coverCache = new Map<string, string>();
 
 function PdfCover({ src, alt }: { src: string; alt: string }) {
@@ -310,27 +284,19 @@ function PdfCover({ src, alt }: { src: string; alt: string }) {
       try {
         const resolved = src.startsWith("http") || src.startsWith("blob:") || src.startsWith("/")
           ? src : `${import.meta.env.BASE_URL}${src}`;
-
-        const pdf = await pdfjsLib.getDocument({
-          url: resolved, wasmUrl: `${import.meta.env.BASE_URL}pdfjs/wasm/`,
-        }).promise;
-
+        const pdf = await pdfjsLib.getDocument({ url: resolved, wasmUrl: `${import.meta.env.BASE_URL}pdfjs/wasm/` }).promise;
         const page = await pdf.getPage(1);
         const viewport = page.getViewport({ scale: 2 });
-
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
         if (!ctx) throw new Error("Canvas 2D context недоступен");
-
         canvas.width = viewport.width;
         canvas.height = viewport.height;
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
         await page.render({ canvasContext: ctx, viewport, canvas }).promise;
         const data = canvas.toDataURL("image/jpeg", 0.85);
         coverCache.set(src, data);
-
         if (!cancelled) setDataUrl(data);
       } catch (e) {
         console.error("[PdfCover] Ошибка:", e);
@@ -356,11 +322,10 @@ function PdfCover({ src, alt }: { src: string; alt: string }) {
 
 // --- ПРИЛОЖЕНИЕ ---
 export default function App() {
-  const books = useMemo(() => seedBooks.map(normalizeBook), []);
+  const books = useMemo(() => seedBooks.map((b: any) => normalizeBook(b)), []);
 
   const [query, setQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
-
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [yearRange, setYearRange] = useState<[number, number] | null>(null);
@@ -368,7 +333,6 @@ export default function App() {
   const [filterPublisher, setFilterPublisher] = useState("");
   const [filterRack, setFilterRack] = useState("");
   const [filterShelf, setFilterShelf] = useState("");
-
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [visibleCount, setVisibleCount] = useState(5);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -390,10 +354,10 @@ export default function App() {
     setVisibleCount(5);
   }, [query, selectedCategories, selectedGenres, yearRange, filterAuthor, filterPublisher, filterRack, filterShelf]);
 
-  const filterableBooks = useMemo(() => books.filter((book) => book.published !== false), [books]);
+  const filterableBooks = useMemo(() => books.filter((book: Book) => book.published !== false), [books]);
 
   const yearBounds = useMemo(() => {
-    const years = filterableBooks.map((book) => book.year).filter((year): year is number => typeof year === "number");
+    const years = filterableBooks.map((book: Book) => book.year).filter((year): year is number => typeof year === "number");
     if (years.length === 0) return null;
     return { min: Math.min(...years), max: Math.max(...years) };
   }, [filterableBooks]);
@@ -408,26 +372,18 @@ export default function App() {
     (filterShelf ? 1 : 0);
 
   const visibleBooks = useMemo(() => {
-    return books.filter((book) => {
+    return books.filter((book: Book) => {
       if (book.published === false) return false;
       if (!matchesSearch(book, query)) return false;
 
-            // Если выбраны жанры или категории
       if (selectedGenres.length > 0 || selectedCategories.length > 0) {
-        // Собираем все жанры, которые входят в выбранные категории
         const categoryGenres = selectedCategories.flatMap(catName => {
           const cat = RUBRICATOR.find(c => c.name === catName);
           return cat ? cat.genres : [];
         });
-        
-        // Объединяем выбранные вручную жанры и жанры из категорий
         const allTargetGenres = [...new Set([...selectedGenres, ...categoryGenres])];
-        
-        // Книга подходит, если у неё есть хотя бы один из нужных жанров
-        // ИЛИ если она напрямую привязана к выбранной категории
         const matchesGenre = allTargetGenres.length > 0 && allTargetGenres.some(g => (book.genres || []).includes(g));
         const matchesCategory = selectedCategories.length > 0 && selectedCategories.some(c => (book.categories || []).includes(c));
-        
         if (!matchesGenre && !matchesCategory) return false;
       }
 
@@ -465,7 +421,7 @@ export default function App() {
       "ID", "Название", "Автор", "Год", "Издательство", "Категории",
       "Жанры", "Аннотация", "Шкаф", "Полка", "Инвентарный номер", "Ссылка на PDF",
     ];
-    const rows = books.map((b) => [
+    const rows = books.map((b: Book) => [
       b.id, b.title, b.authors.join("; "), b.year ?? "",
       b.publisher ?? "", (b.categories || []).join("; "), (b.genres ?? []).join("; "),
       b.annotation ?? "", b.rack ?? "", b.shelf ?? "",
@@ -488,8 +444,6 @@ export default function App() {
 
   return (
     <main className="app">
-      {/* CSS-блок оставь свой без изменений (он не менялся). Убрал только для краткости ответа. */}
-      {/* === СТИЛИ === */}
       <style>{`
         @font-face {
           font-family: "Wremena";
@@ -558,333 +512,4 @@ export default function App() {
         .category-dropdown-btn { width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center; background: var(--color-surface); color: var(--color-text); border: 1.5px solid var(--color-border); padding: 10px 14px; border-radius: 6px; font-weight: 400; font-size: 0.95rem; }
         .category-dropdown-btn:hover { border-color: var(--color-green); }
         .category-dropdown-menu { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 10; background: var(--color-surface); border: 1.5px solid var(--color-border); border-radius: 6px; max-height: 300px; overflow-y: auto; padding: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
-        .year-values { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; color: var(--color-muted); font-variant-numeric: tabular-nums; }
-        .year-slider-wrap { padding: 8px 4px; }
-        .rc-slider-rail { background: var(--color-border) !important; height: 4px; }
-        .rc-slider-track { background: var(--color-green) !important; height: 4px; }
-        .rc-slider-handle { width: 18px !important; height: 18px !important; margin-top: -7px !important; border: 2px solid var(--color-green) !important; background: #fff !important; opacity: 1 !important; }
-        .rc-slider-handle:hover, .rc-slider-handle:focus, .rc-slider-handle-dragging { border-color: var(--color-green-dark) !important; box-shadow: 0 0 0 4px rgb(49 86 63 / 25%) !important; }
-        .storage-selects { display: flex; gap: 10px; }
-        .storage-selects select { flex: 1; padding: 10px 14px; border: 1.5px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-text); outline: none; }
-        .storage-selects select:focus { border-color: var(--color-green); }
-        .filter-actions { grid-column: 1 / -1; display: flex; gap: 10px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--color-border); }
-        button { border: 0; border-radius: 6px; padding: 10px 18px; background: var(--color-green); color: #fff; font-weight: 500; font-size: 0.95rem; transition: background 0.15s, color 0.15s; }
-        button:hover { background: var(--color-green-dark); color: #fff !important; }
-        button.secondary { color: var(--color-green); background: transparent; border: 1px solid var(--color-green); }
-        button.secondary:hover { background: var(--color-green); color: #fff !important; }
-        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        .book-card { padding: 24px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; display: grid; grid-template-columns: 140px 1fr; gap: 12px 28px; align-items: start; transition: box-shadow 0.2s, transform 0.2s; }
-        .book-card:hover { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08); transform: translateY(-2px); }
-        .tag { grid-column: 2; grid-row: 1; justify-self: start; margin-bottom: 0; display: inline-block; padding: 3px 10px; border-radius: 2px; background: var(--color-bg); color: var(--color-muted); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
-        .cover-wrap { grid-column: 1; grid-row: 2; width: 140px; aspect-ratio: 3 / 4; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
-        .cover-image { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .cover-placeholder { font-size: 0.8rem; text-align: center; padding: 8px; line-height: 1.4; }
-        .book-info { grid-column: 2; grid-row: 2; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px 32px; align-content: start; }
-        .book-info > h2, .book-info > .card-actions { grid-column: 1 / -1; }
-        .book-info > h2 { margin: 0 0 8px; font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; line-height: 1.25; color: var(--color-green); }
-        .title-btn { cursor: pointer; background: transparent !important; border: none !important; padding: 0 !important; margin: 0 !important; color: inherit !important; font: inherit !important; text-align: left; }
-        .title-btn:hover { background: transparent !important; color: var(--color-green) !important; }
-        .book-info p { margin: 0; font-size: 0.95rem; line-height: 1.5; color: var(--color-text); }
-        .book-info p strong { display: block; font-weight: 600; color: var(--color-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-        .card-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; padding-top: 16px; border-top: 1px solid var(--color-border); }
-        .card-actions a { display: inline-flex; align-items: center; padding: 8px 16px; color: var(--color-green); border: 1px solid var(--color-green); border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: background 0.15s, color 0.15s; }
-        .card-actions a:hover { background: var(--color-green); color: #fff !important; }
-        .load-more-container { display: flex; justify-content: center; margin-top: 32px; margin-bottom: 16px; }
-        .load-more-container button { padding: 12px 32px; font-size: 1rem; min-width: 200px; }
-        .modal-backdrop { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
-        .modal { width: min(720px, 100%); max-height: 90vh; overflow: auto; padding: 32px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); }
-        .modal .topbar { padding-bottom: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); }
-        .modal h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--color-green); }
-        .modal-book-layout { display: grid; grid-template-columns: 160px 1fr; gap: 24px; margin-bottom: 20px; align-items: start; }
-        .modal-cover { width: 160px; aspect-ratio: 3 / 4; border-radius: 4px; overflow: hidden; border: 1px solid var(--color-border); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
-        .modal-cover .cover-wrap { width: 100%; height: 100%; grid-column: auto; grid-row: auto; box-shadow: none; border: none; border-radius: 0; }
-        .modal-book-main p { margin: 0 0 10px; font-size: 0.95rem; line-height: 1.55; color: var(--color-text); }
-        .modal-book-main p strong { font-weight: 700; color: var(--color-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; margin-right: 6px; }
-        .modal p { margin: 0 0 10px; font-size: 0.95rem; line-height: 1.55; color: var(--color-text); }
-        .modal p strong { font-weight: 700; color: var(--color-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; margin-right: 6px; }
-        .modal a { color: var(--color-green); font-weight: 500; text-decoration: none; border-bottom: 1px solid var(--color-green); }
-        .site-footer { margin-top: auto; padding-top: 60px; padding-bottom: 40px; border-top: 1px solid var(--color-border); display: flex; flex-direction: column; align-items: center; gap: 24px; }
-        .footer-logos { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 40px; }
-        .logo-placeholder { width: 140px; height: 70px; background: var(--color-surface); border: 1px dashed var(--color-border); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--color-muted); text-align: center; padding: 8px; }
-        .footer-copyright { margin: 0; font-size: 0.85rem; color: var(--color-muted); text-align: center; }
-        @media (max-width: 700px) {
-          .app { padding: 20px 16px 60px; }
-          .topbar { margin-bottom: 24px; padding-bottom: 16px; }
-          .book-card { grid-template-columns: 1fr; gap: 16px; }
-          .tag { grid-column: 1; grid-row: auto; }
-          .cover-wrap { grid-column: 1; grid-row: auto; justify-self: center; width: 140px; }
-          .book-info { grid-column: 1; grid-row: auto; width: 100%; }
-          .search-line { flex-direction: row; align-items: stretch; flex-wrap: nowrap; gap: 8px; }
-          .search-input { flex: 1 1 0; min-width: 0; min-height: 46px; padding: 0 12px; font-size: 0.9rem; }
-          .search-input::placeholder { font-size: 0.82rem; }
-          .filters-button { min-height: 46px; padding: 0 12px; font-size: 0.82rem; }
-          .modal { padding: 24px; }
-          .filters-panel { padding: 20px; grid-template-columns: 1fr; }
-          .modal-book-layout { grid-template-columns: 1fr; gap: 16px; }
-          .modal-cover { width: 140px; justify-self: center; }
-          .footer-logos { gap: 20px; }
-          .logo-placeholder { width: 100px; height: 50px; font-size: 0.7rem; }
-        }
-      `}</style>
-
-      <header className="topbar">
-        <div className="brand">
-          <h1>Электронная библиотека</h1>
-          <div className="muted">Книжная коллекция дома-музея П. П. Бажова</div>
-        </div>
-        <button className="burger-btn" onClick={() => setMenuOpen(true)} aria-label="Открыть меню">☰</button>
-      </header>
-
-      {menuOpen && (
-        <>
-          <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
-          <nav className="side-menu" aria-label="Главное меню">
-            <button className="menu-close" onClick={() => setMenuOpen(false)} aria-label="Закрыть меню">×</button>
-            <button className="menu-item" onClick={() => { setCurrentPage("catalog"); setMenuOpen(false); }}>Каталог</button>
-            <button className="menu-item" onClick={() => { setCurrentPage("about"); setMenuOpen(false); }}>О проекте</button>
-            <button className="menu-item" onClick={() => { setCurrentPage("download"); setMenuOpen(false); }}>Скачать каталог</button>
-            <button className="menu-item" onClick={handleSurprise}>Удивите меня</button>
-            <button className="menu-item" onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
-              {theme === "light" ? "Тёмная тема" : "Светлая тема"}
-            </button>
-          </nav>
-        </>
-      )}
-
-      <div style={{ flex: 1 }}>
-        {currentPage === "about" && (
-          <section className="panel">
-            <h1 className="page-title">О проекте</h1>
-            <div className="page-content">
-              <p>Здесь будет текст, описывающий работу сайта, историю коллекции и цели проекта.</p>
-              <p className="muted">(Текст будет добавлен позже)</p>
-            </div>
-          </section>
-        )}
-
-        {currentPage === "download" && (
-          <section className="panel">
-            <h1 className="page-title">Скачать каталог</h1>
-            <div className="page-content">
-              <p>Вы можете сохранить полный каталог книг в формате CSV. Файл откроется в Excel или любой программе для работы с таблицами.</p>
-              <p>В каталог включены все данные: ID, название, авторы, год, издательство, категории, жанры, аннотация, место хранения и ссылка на PDF-файл.</p>
-              <button className="btn-primary" style={{ marginTop: 12 }} onClick={handleDownloadCsv}>
-                Скачать каталог (CSV)
-              </button>
-            </div>
-          </section>
-        )}
-
-        {currentPage === "catalog" && (
-          <>
-            <section className="panel">
-              <strong>Каталог для посетителей</strong>
-              <p className="muted">Используйте поиск по библиографическим данным или откройте фильтры, чтобы уточнить категорию, жанр и год издания.</p>
-            </section>
-
-            <section className="search-area" aria-label="Поиск и фильтры">
-              <div className="search-line">
-                <input
-                  className="search-input" type="search" value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Поиск по названию, автору, издательству, шкафу, полке…"
-                  aria-label="Поиск по каталогу"
-                />
-                <button
-                  type="button"
-                  className={`filters-button ${activeFilterCount > 0 ? "active" : ""}`}
-                  onClick={() => setFiltersOpen((open) => !open)}
-                >
-                  Фильтры
-                  {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-                  <span aria-hidden="true" style={{ marginLeft: 6 }}>{filtersOpen ? "▲" : "▼"}</span>
-                </button>
-              </div>
-
-              {filtersOpen && (
-                <div className="filters-panel">
-                  {/* Рубрикатор на всю ширину */}
-                  <div className="filter-section" style={{ gridColumn: "1 / -1" }}>
-                    <h3>Рубрикатор</h3>
-                    <RubricatorSelector
-                      selectedCategories={selectedCategories}
-                      selectedGenres={selectedGenres}
-                      onChange={(cats, gens) => {
-                        setSelectedCategories(cats);
-                        setSelectedGenres(gens);
-                      }}
-                    />
-                  </div>
-
-                  {yearBounds && (
-                    <div className="filter-section">
-                      <h3>Год издания</h3>
-                      <div className="year-values">
-                        <span>От: {yearRange?.[0] ?? yearBounds.min}</span>
-                        <span>До: {yearRange?.[1] ?? yearBounds.max}</span>
-                      </div>
-                      <div className="year-slider-wrap">
-                        <Slider range min={yearBounds.min} max={yearBounds.max}
-                          value={yearRange ?? [yearBounds.min, yearBounds.max]}
-                          onChange={(value) => { if (Array.isArray(value) && value.length === 2) setYearRange([value[0], value[1]]); }}
-                          allowCross={false} />
-                      </div>
-                      <small className="muted">Доступный диапазон: {yearBounds.min}–{yearBounds.max}</small>
-                    </div>
-                  )}
-
-                  <div className="filter-section">
-                    <h3>Автор</h3>
-                    <input
-                      type="text" className="filter-input"
-                      placeholder="Фамилия или инициалы..."
-                      value={filterAuthor}
-                      onChange={(e) => setFilterAuthor(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="filter-section">
-                    <h3>Издательство</h3>
-                    <input
-                      type="text" className="filter-input"
-                      placeholder="Название издательства..."
-                      value={filterPublisher}
-                      onChange={(e) => setFilterPublisher(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="filter-section">
-                    <h3>Место хранения</h3>
-                    <div className="storage-selects">
-                      <select value={filterRack} onChange={(e) => setFilterRack(e.target.value)}>
-                        <option value="">Все шкафы</option>
-                        {[1, 2, 3, 4].map(n => <option key={n} value={n}>Шкаф {n}</option>)}
-                      </select>
-                      <select value={filterShelf} onChange={(e) => setFilterShelf(e.target.value)}>
-                        <option value="">Все полки</option>
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={n}>Полка {n}</option>)}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="filter-actions">
-                    <button type="button" className="secondary" onClick={() => {
-                      setSelectedCategories([]);
-                      setSelectedGenres([]);
-                      setYearRange(null);
-                      setFilterAuthor("");
-                      setFilterPublisher("");
-                      setFilterRack("");
-                      setFilterShelf("");
-                    }}>
-                      Сбросить фильтры
-                    </button>
-                  </div>
-                </div>
-              )}
-            </section>
-
-            <p className="muted">Найдено книг: {visibleBooks.length}</p>
-
-            {visibleBooks.length === 0 ? (
-              <section className="panel">По вашему запросу ничего не найдено.</section>
-            ) : (
-              <>
-                <section className="grid">
-                  {visibleBooks.slice(0, visibleCount).map((book) => {
-                    const fileUrl = getPdfUrl(book);
-                    return (
-                      <article className="book-card" key={book.id}>
-                        <span className="tag">{(book.categories || []).join(", ") || "Без категории"}</span>
-                        {fileUrl && <PdfCover src={fileUrl} alt={`Обложка книги «${book.title}»`} />}
-                        <div className="book-info">
-                          <h2>
-                            <button
-                              className="title-btn"
-                              onClick={() => setSelectedBook(book)}
-                              type="button"
-                            >
-                              {book.title}
-                            </button>
-                          </h2>
-                          {book.authors.length > 0 && (<p><strong>Автор</strong>{book.authors.join(", ")}</p>)}
-                          {book.year && (<p><strong>Год издания</strong>{book.year}</p>)}
-                          {book.publisher && (<p><strong>Издательство</strong>{book.publisher}</p>)}
-
-                          {(book.rack || book.shelf) && (
-                            <p><strong>Место хранения</strong>Шкаф № {book.rack || "—"}, полка № {book.shelf || "—"}</p>
-                          )}
-
-                          <div className="card-actions">
-                            <button className="secondary" onClick={() => setSelectedBook(book)}>Подробнее</button>
-                            {fileUrl && (
-                              <a href={fileUrl} target="_blank" rel="noreferrer" download={!fileUrl.startsWith("http") ? book.pdfPath?.split("/").pop() : undefined}>
-                                Скачать PDF
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </section>
-
-                {visibleCount < visibleBooks.length && (
-                  <div className="load-more-container">
-                    <button type="button" className="secondary" onClick={() => setVisibleCount((prev) => prev + 10)}>Показать еще</button>
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        )}
-      </div>
-
-      <footer className="site-footer">
-        <div className="footer-logos">
-          <div className="logo-placeholder">Логотип музея</div>
-          <div className="logo-placeholder">Логотип университета</div>
-          <div className="logo-placeholder">Логотип партнёра</div>
-        </div>
-        <p className="footer-copyright">© Дом-музей П. П. Бажова, 2026</p>
-      </footer>
-
-      {selectedBook && (
-        <div className="modal-backdrop" role="presentation" onClick={() => setSelectedBook(null)}>
-          <section className="modal" role="dialog" aria-modal="true" aria-label="Карточка книги" onClick={(e) => e.stopPropagation()}>
-            <div className="topbar">
-              <h2>{selectedBook.title}</h2>
-              <button className="secondary" onClick={() => setSelectedBook(null)}>Закрыть</button>
-            </div>
-
-            <div className="modal-book-layout">
-              {getPdfUrl(selectedBook) && (
-                <div className="modal-cover">
-                  <PdfCover src={getPdfUrl(selectedBook)} alt={`Обложка книги «${selectedBook.title}»`} />
-                </div>
-              )}
-              <div className="modal-book-main">
-                <p><strong>Автор:</strong> {selectedBook.authors.join(", ") || "—"}</p>
-                <p><strong>Год:</strong> {selectedBook.year ?? "—"}</p>
-                <p><strong>Издательство:</strong> {selectedBook.publisher || "—"}</p>
-                <p><strong>Категории:</strong> {(selectedBook.categories || []).join(", ") || "—"}</p>
-                <p><strong>Жанры:</strong> {selectedBook.genres?.join(", ") || "—"}</p>
-                <p><strong>Шкаф:</strong> {selectedBook.rack || "—"}</p>
-                <p><strong>Полка:</strong> {selectedBook.shelf || "—"}</p>
-                <p><strong>Инвентарный номер:</strong> {selectedBook.inventoryNumber || "—"}</p>
-              </div>
-            </div>
-
-            <p><strong>Аннотация:</strong> {selectedBook.annotation || "—"}</p>
-
-            {getPdfUrl(selectedBook) && (
-              <p style={{ marginTop: 16 }}>
-                <a href={getPdfUrl(selectedBook)} target="_blank" rel="noreferrer">Открыть PDF</a>
-              </p>
-            )}
-          </section>
-        </div>
-      )}
-    </main>
-  );
-}
+        .year-values { display
