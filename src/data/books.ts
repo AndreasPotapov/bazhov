@@ -4,6 +4,7 @@ export type Book = {
   authors: string[];
   year?: number;
   publisher?: string;
+  categories?: string[];
   category?: string;
   genres?: string[];
   annotation?: string;
@@ -20,23 +21,27 @@ export type Book = {
 export const books: Book[] = [
   {
     "id": "B-0005",
-    "title": "большая книга тест 4",
+    "title": "большая книга тест 8",
     "authors": [
-      "Папу"
+      "Уа-уа"
     ],
     "year": 2026,
-    "publisher": "",
-    "category": "Поэзия",
+    "publisher": "Ау",
+    "categories": [
+      "Книжные издания"
+    ],
+    "category": "Книжные издания",
     "genres": [
-      "Библиографические пособия"
+      "Рассказы и новеллы"
     ],
     "annotation": "",
     "rack": "3",
-    "shelf": "6",
+    "shelf": "3",
     "inventoryNumber": "B-0005",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005.pdf",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0005.pdf",
     "published": true,
-    "ocrUrl": ""
+    "ocrUrl": "",
+    "processing": false
   },
   {
     "id": "B-0004",
@@ -46,6 +51,9 @@ export const books: Book[] = [
     ],
     "year": 1986,
     "publisher": "Правда, Москва",
+    "categories": [
+      "Проза"
+    ],
     "category": "Проза",
     "genres": [
       "Альманахи и сборники",
@@ -70,7 +78,10 @@ export const books: Book[] = [
       "Бажов П. П."
     ],
     "year": 1986,
-    "publisher": "Москва",
+    "publisher": "Правда, Москва",
+    "categories": [
+      "Проза"
+    ],
     "category": "Проза",
     "genres": [
       "Альманахи и сборники",
@@ -93,6 +104,9 @@ export const books: Book[] = [
     ],
     "year": 1986,
     "publisher": "Правда, Москва",
+    "categories": [
+      "Художественная литература"
+    ],
     "category": "Художественная литература",
     "genres": [
       "Альманахи и сборники",
