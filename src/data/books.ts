@@ -20,6 +20,29 @@ export type Book = {
 
 export const books: Book[] = [
   {
+    "id": "B-0007",
+    "title": "тест большой после оптимизации",
+    "authors": [
+      "Укола"
+    ],
+    "year": 2026,
+    "publisher": "",
+    "categories": [
+      "Справочные издания"
+    ],
+    "category": "Справочные издания",
+    "genres": [
+      "Словари"
+    ],
+    "annotation": "",
+    "rack": "1",
+    "shelf": "2",
+    "inventoryNumber": "B-0007",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0007.pdf",
+    "published": true,
+    "ocrUrl": ""
+  },
+  {
     "id": "B-0006",
     "title": "тест 9",
     "authors": [
@@ -40,8 +63,7 @@ export const books: Book[] = [
     "inventoryNumber": "B-0006",
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0006.pdf",
     "published": true,
-    "ocrUrl": "",
-    "processing": false
+    "ocrUrl": ""
   },
   {
     "id": "B-0005",
