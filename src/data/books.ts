@@ -123,28 +123,5 @@ export const books: Book[] = [
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0002.pdf",
     "published": true,
     "ocrUrl": ""
-  },
-  {
-    "id": "B-0008",
-    "title": "На Урале",
-    "authors": [
-      "Васильев С."
-    ],
-    "year": 1944,
-    "publisher": "Детгиз",
-    "categories": [
-      "Книжные издания"
-    ],
-    "category": "Книжные издания",
-    "genres": [
-      "Рассказы и новеллы"
-    ],
-    "annotation": "Сборник стихов С. Васильева",
-    "rack": "1",
-    "shelf": "3",
-    "inventoryNumber": "B-0008",
-    "pdfUrl": "",
-    "published": true,
-    "ocrUrl": ""
   }
 ];
