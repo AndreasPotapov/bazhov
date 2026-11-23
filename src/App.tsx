@@ -8,7 +8,7 @@ import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-// --- ТИП (самодостаточный, чтобы TS не ругался) ---
+// --- ТИП ДАННЫХ ---
 type Book = {
   id: string;
   title: string;
@@ -28,7 +28,17 @@ type Book = {
   published?: boolean;
   ocrUrl?: string;
   processing?: boolean;
-  coverUrl?: string;   // <-- добавить (пригодится для обложек)
+  coverUrl?: string;
+};
+
+// --- НАЗВАНИЯ ШКАФОВ (добавлено) ---
+const RACK_NAMES: Record<string, string> = {
+  "1": "Основной фонд",
+  "2": "Редкие книги",
+  "3": "Периодика",
+  "4": "Карты и атласы",
+  "5": "Справочная литература",
+  "6": "Детская литература"
 };
 
 // --- РУБРИКАТОР ---
@@ -36,62 +46,102 @@ const RUBRICATOR = [
   {
     id: "book-editions", name: "Книжные издания",
     genres: [
-      "Романы", "Повести", "Рассказы и новеллы", "Очерки", "Историческая проза", "Социальная и реалистическая проза",
-      "Приключенческая проза", "Биографическая проза", "Мемуары и воспоминания", "Юмор и сатира",
-      "Мистика и фантастика", "Триллеры и детективы", "Произведения об Урале", "Произведения уральских писателей",
-      "Стихотворения", "Поэмы", "Баллады", "Лирическая поэзия", "Эпическая поэзия", "Сатирическая поэзия",
-      "Народная поэзия", "Поэзия уральских авторов", "Пьесы", "Драмы", "Комедии", "Трагедии",
-      "Историческая драматургия", "Драматические произведения для детей", "Сказы П. П. Бажова",
-      "Сказы других уральских писателей", "Литературные сказания", "Сказовые циклы", "Сказы о горняках и мастерах",
-      "Сказы о природе и богатствах Урала", "Народные песни", "Народные сказки", "Былины и эпос",
-      "Фольклорные сборники", "Уральские легенды и предания", "Загадки, пословицы и поговорки",
-      "Детская поэзия", "Сказы для детей", "Познавательная и краеведческая литература для детей",
-      "Литературные и народные сказки", "Детские рассказы и повести", "Иллюстрированные детские издания",
-      "Книги для дошкольников", "Книги для младшего школьного возраста", "Книги для подростков",
-      "Биографии", "Автобиографии", "Мемуары", "Воспоминания", "Дневники", "Письма и переписка",
-      "Документальная проза", "Публицистика", "Эссе", "Литературная критика", "Статьи",
-      "Литературные миниатюры", "Путевые заметки", "Репортажи", "Фельетон и памфлет", "Интервью и беседа"
+      "Романы", "Повести", "Рассказы и новеллы", "Очерки", "Поэзия",
+      "Историческая проза", "Социальная и реалистическая проза",
+      "Приключенческая проза", "Биографическая проза", "Мемуары и воспоминания",
+      "Юмор и сатира", "Мистика и фантастика", "Триллеры и детективы",
+      "Произведения об Урале", "Произведения уральских писателей",
+      "Стихотворения", "Поэмы", "Баллады", "Лирическая поэзия", "Эпическая поэзия",
+      "Сатирическая поэзия", "Народная поэзия", "Поэзия уральских авторов",
+      "Пьесы", "Драмы", "Комедии", "Трагедии", "Историческая драматургия",
+      "Драматические произведения для детей", "Сказы П. П. Бажова",
+      "Сказы других уральских писателей", "Литературные сказания",
+      "Сказовые циклы", "Сказы о горняках и мастерах",
+      "Сказы о природе и богатствах Урала", "Народные песни", "Народные сказки",
+      "Былины и эпос", "Фольклорные сборники", "Уральские легенды и предания",
+      "Загадки, пословицы и поговорки", "Детская поэзия", "Сказы для детей",
+      "Познавательная и краеведческая литература для детей",
+      "Литературные и народные сказки", "Детские рассказы и повести",
+      "Иллюстрированные детские издания", "Книги для дошкольников",
+      "Книги для младшего школьного возраста", "Книги для подростков",
+      "Биографии", "Автобиографии", "Мемуары", "Воспоминания", "Дневники",
+      "Письма и переписка", "Документальная проза", "Публицистика", "Эссе",
+      "Литературная критика", "Статьи", "Литературные миниатюры",
+      "Путевые заметки", "Репортажи", "Фельетон и памфлет", "Интервью и беседа"
     ]
   },
   {
     id: "periodicals", name: "Периодические издания",
-    genres: ["Литературные журналы", "Научные журналы", "Исторические журналы", "Краеведческие журналы", "Детские журналы", "Общественно-культурные журналы", "Газеты", "Литературные альманахи", "Научные периодические сборники"]
+    genres: [
+      "Литературные журналы", "Научные журналы", "Исторические журналы",
+      "Краеведческие журналы", "Детские журналы", "Общественно-культурные журналы",
+      "Газеты", "Литературные альманахи", "Научные периодические сборники"
+    ]
   },
   {
     id: "cartographic", name: "Картографические издания",
-    genres: ["Географические карты", "Исторические карты", "Топографические карты", "Геологические карты", "Карты Урала", "Карты Екатеринбурга и Свердловской области", "Атласы", "Планы городов и населённых пунктов"]
+    genres: [
+      "Географические карты", "Исторические карты", "Топографические карты",
+      "Геологические карты", "Карты Урала", "Карты Екатеринбурга и Свердловской области",
+      "Атласы", "Планы городов и населённых пунктов"
+    ]
   },
   {
     id: "reference", name: "Справочные издания",
-    genres: ["Энциклопедии", "Литературные энциклопедии", "Исторические энциклопедии", "Словари", "Толковые словари", "Фольклорные словари", "Литературоведческие словари", "Географические справочники", "Минералогические справочники", "Библиографические указатели", "Каталоги", "Путеводители"]
+    genres: [
+      "Энциклопедии", "Литературные энциклопедии", "Исторические энциклопедии",
+      "Словари", "Толковые словари", "Фольклорные словари",
+      "Литературоведческие словари", "Географические справочники",
+      "Минералогические справочники", "Библиографические указатели", "Каталоги",
+      "Путеводители"
+    ]
   },
   {
     id: "educational", name: "Учебные и методические издания",
-    genres: ["Учебники", "Учебные пособия", "Методические рекомендации", "Методические разработки", "Хрестоматии", "Сборники упражнений", "Материалы для преподавателей", "Материалы для внеклассного чтения", "Пособия по краеведению", "Пособия по литературе и фольклору"]
+    genres: [
+      "Учебники", "Учебные пособия", "Методические рекомендации",
+      "Методические разработки", "Хрестоматии", "Сборники упражнений",
+      "Материалы для преподавателей", "Материалы для внеклассного чтения",
+      "Пособия по краеведению", "Пособия по литературе и фольклору"
+    ]
   },
   {
     id: "scientific", name: "Научные издания",
-    genres: ["Монографии", "Диссертации", "Авторефераты диссертаций", "Научные статьи", "Сборники научных работ", "Материалы конференций", "Литературоведческие исследования", "Фольклористические исследования", "Исторические исследования", "Этнографические исследования", "Геологические и минералогические исследования", "Искусствоведческие исследования"]
+    genres: [
+      "Монографии", "Диссертации", "Авторефераты диссертаций", "Научные статьи",
+      "Сборники научных работ", "Материалы конференций",
+      "Литературоведческие исследования", "Фольклористические исследования",
+      "Исторические исследования", "Этнографические исследования",
+      "Геологические и минералогические исследования", "Искусствоведческие исследования"
+    ]
   },
   {
     id: "collections", name: "Сборники и собрания сочинений",
-    genres: ["Собрания сочинений П. П. Бажова", "Сборники сказов", "Сборники рассказов", "Сборники стихотворений", "Сборники народного фольклора", "Сборники уральских писателей", "Антологии", "Коллективные литературные сборники", "Избранные произведения", "Тематические литературные сборники"]
+    genres: [
+      "Собрания сочинений П. П. Бажова", "Сборники сказов", "Сборники рассказов",
+      "Сборники стихотворений", "Сборники народного фольклора",
+      "Сборники уральских писателей", "Антологии", "Коллективные литературные сборники",
+      "Избранные произведения", "Тематические литературные сборники"
+    ]
   },
   {
     id: "special-formats", name: "Издания специального формата",
-    genres: ["Иллюстрированные издания", "Альбомы", "Фотоальбомы", "Коллекционные издания", "Книги с автографами", "Факсимильные издания", "Редкие и старинные издания"]
+    genres: [
+      "Иллюстрированные издания", "Альбомы", "Фотоальбомы", "Коллекционные издания",
+      "Книги с автографами", "Факсимильные издания", "Редкие и старинные издания"
+    ]
   }
 ];
 
-// --- КОМПОНЕНТ РУБРИКАТОРА ---
-function RubricatorSelector({ 
-  selectedCategories, 
-  selectedGenres, 
-  onChange 
-}: { 
-  selectedCategories: string[]; 
-  selectedGenres: string[]; 
-  onChange: (cats: string[], genres: string[]) => void 
+// --- КОМПОНЕНТ ВЫБОРА РУБРИК ---
+function RubricatorSelector({
+  selectedCategories,
+  selectedGenres,
+  onChange
+}: {
+  selectedCategories: string[];
+  selectedGenres: string[];
+  onChange: (cats: string[], genres: string[]) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [expanded, setExpanded] = useState<string[]>([]);
@@ -138,25 +188,41 @@ function RubricatorSelector({
 
   return (
     <div className="dropdown-container" style={{ position: 'relative', zIndex: 50 }}>
-      <button type="button" className="dropdown-btn" onClick={() => setIsOpen(!isOpen)} style={{ width: '100%', textAlign: 'left', display: 'flex', justifyContent: 'space-between' }}>
+      <button
+        type="button"
+        className="dropdown-btn"
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          width: '100%', textAlign: 'left', display: 'flex',
+          justifyContent: 'space-between', alignItems: 'center',
+          background: 'var(--color-surface)', color: 'var(--color-text)',
+          border: '1.5px solid var(--color-border)', padding: '10px 14px',
+          borderRadius: '6px', fontWeight: 400, fontSize: '0.95rem'
+        }}
+      >
         <span>
-          {selectedCategories.length === 0 && selectedGenres.length === 0 
-            ? "Все категории и жанры" 
+          {selectedCategories.length === 0 && selectedGenres.length === 0
+            ? "Все категории и жанры"
             : `Выбрано: ${selectedCategories.length} кат., ${selectedGenres.length} жанров`}
         </span>
         <span>{isOpen ? "▲" : "▼"}</span>
       </button>
 
       {isOpen && (
-        <div style={{ 
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000, 
-          background: '#fff', border: '1px solid #ccc', borderRadius: '4px', 
-          padding: '8px', maxHeight: '400px', overflowY: 'auto', 
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>
-            <button type="button" className="btn-outline" onClick={reset} style={{ fontSize: '12px', padding: '4px 8px' }}>Сбросить выбор</button>
-            <button type="button" className="btn-secondary" onClick={() => setIsOpen(false)} style={{ fontSize: '12px', padding: '4px 8px' }}>Закрыть</button>
+        <div
+          style={{
+            position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000,
+            background: 'var(--color-surface)', border: '1.5px solid var(--color-border)',
+            borderRadius: '6px', maxHeight: '300px', overflowY: 'auto',
+            padding: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px',
+            borderBottom: '1px solid var(--color-border)', paddingBottom: '8px' }}>
+            <button type="button" className="secondary" onClick={reset}
+              style={{ fontSize: '12px', padding: '4px 8px' }}>Сбросить выбор</button>
+            <button type="button" className="secondary" onClick={() => setIsOpen(false)}
+              style={{ fontSize: '12px', padding: '4px 8px' }}>Закрыть</button>
           </div>
 
           {RUBRICATOR.map(cat => {
@@ -165,34 +231,51 @@ function RubricatorSelector({
             return (
               <div key={cat.id} style={{ marginBottom: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0' }}>
-                  <button 
-                    type="button" 
-                    onClick={() => setExpanded(prev => prev.includes(cat.id) ? prev.filter(x => x !== cat.id) : [...prev, cat.id])} 
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', width: '20px', padding: 0, fontSize: '12px', color: '#666' }}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpanded(prev => prev.includes(cat.id)
+                        ? prev.filter(x => x !== cat.id)
+                        : [...prev, cat.id]
+                      )
+                    }
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      width: '20px', padding: 0, fontSize: '12px', color: 'var(--color-muted)'
+                    }}
                   >
                     {isExpanded ? "▼" : "►"}
                   </button>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }} onClick={() => toggleCategory(cat.name)}>
-                    <input 
-                      type="checkbox" 
-                      checked={isCatSelected} 
-                      onChange={(e) => { e.stopPropagation(); toggleCategory(cat.name); }} 
-                      style={{ margin: 0, width: '16px', height: '16px' }} 
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                    onClick={() => toggleCategory(cat.name)}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isCatSelected}
+                      onChange={(e) => { e.stopPropagation(); toggleCategory(cat.name); }}
+                      style={{ margin: 0, width: '16px', height: '16px', cursor: 'pointer' }}
                     />
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#333' }}>{cat.name}</span>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-green)' }}>
+                      {cat.name}
+                    </span>
                   </div>
                 </div>
                 {isExpanded && (
                   <div style={{ marginLeft: '28px', display: 'grid', gap: '4px', marginTop: '4px' }}>
                     {cat.genres.map(g => (
-                      <div key={g} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }} onClick={() => toggleGenre(g, cat.name)}>
-                        <input 
-                          type="checkbox" 
-                          checked={selectedGenres.includes(g)} 
-                          onChange={(e) => { e.stopPropagation(); toggleGenre(g, cat.name); }} 
-                          style={{ margin: 0, width: '16px', height: '16px' }} 
+                      <div
+                        key={g}
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}
+                        onClick={() => toggleGenre(g, cat.name)}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedGenres.includes(g)}
+                          onChange={(e) => { e.stopPropagation(); toggleGenre(g, cat.name); }}
+                          style={{ margin: 0, width: '16px', height: '16px', cursor: 'pointer' }}
                         />
-                        <span style={{ color: '#555' }}>{g}</span>
+                        <span style={{ color: 'var(--color-text)' }}>{g}</span>
                       </div>
                     ))}
                   </div>
@@ -206,7 +289,7 @@ function RubricatorSelector({
   );
 }
 
-// --- НОРМАЛИЗАЦИЯ ---
+// --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 function normalizeBook(value: any): Book {
   const authors = Array.isArray(value.authors)
     ? value.authors.map((a: any) => String(a).trim()).filter(Boolean)
@@ -248,7 +331,6 @@ function normalizeBook(value: any): Book {
   };
 }
 
-// --- ПОИСК ---
 function stemText(text: string): string[] {
   const normalized = text.toLocaleLowerCase("ru-RU").replaceAll("ё", "е");
   return normalized.split(/[^a-zа-я0-9]+/i).filter(Boolean).map((word) => russian(word));
@@ -294,8 +376,12 @@ function PdfCover({ src, alt }: { src: string; alt: string }) {
     (async () => {
       try {
         const resolved = src.startsWith("http") || src.startsWith("blob:") || src.startsWith("/")
-          ? src : `${import.meta.env.BASE_URL}${src}`;
-        const pdf = await pdfjsLib.getDocument({ url: resolved, wasmUrl: `${import.meta.env.BASE_URL}pdfjs/wasm/` }).promise;
+          ? src
+          : `${import.meta.env.BASE_URL}${src}`;
+        const pdf = await pdfjsLib.getDocument({
+          url: resolved,
+          wasmUrl: `${import.meta.env.BASE_URL}pdfjs/wasm/`
+        }).promise;
         const page = await pdf.getPage(1);
         const viewport = page.getViewport({ scale: 2 });
         const canvas = document.createElement("canvas");
@@ -323,7 +409,14 @@ function PdfCover({ src, alt }: { src: string; alt: string }) {
       {dataUrl ? (
         <img className="cover-image" src={dataUrl} alt={alt} />
       ) : (
-        <span className="cover-placeholder" style={{ color: failed ? "var(--color-error)" : "var(--color-muted)", fontWeight: failed ? 600 : 400 }}>
+        <span
+          className="cover-placeholder"
+          style={{
+            color: failed ? "var(--color-error)" : "var(--color-muted)",
+            fontWeight: failed ? 600 : 400,
+            fontSize: '0.8rem', textAlign: 'center', padding: '8px', lineHeight: '1.4'
+          }}
+        >
           {failed ? "Не удалось загрузить обложку" : "Загрузка обложки…"}
         </span>
       )}
@@ -331,7 +424,7 @@ function PdfCover({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-// --- ПРИЛОЖЕНИЕ ---
+// --- ОСНОВНОЙ КОМПОНЕНТ ---
 export default function App() {
   const books = useMemo(() => (seedBooks as any[]).map((b: any) => normalizeBook(b)), []);
 
@@ -368,7 +461,8 @@ export default function App() {
   const filterableBooks = useMemo(() => books.filter((book: Book) => book.published !== false), [books]);
 
   const yearBounds = useMemo(() => {
-    const years = filterableBooks.map((book: Book) => book.year).filter((year): year is number => typeof year === "number");
+    const years = filterableBooks.map((book: Book) => book.year)
+      .filter((year): year is number => typeof year === "number");
     if (years.length === 0) return null;
     return { min: Math.min(...years), max: Math.max(...years) };
   }, [filterableBooks]);
@@ -419,6 +513,12 @@ export default function App() {
     });
   }, [books, query, selectedCategories, selectedGenres, yearRange, filterAuthor, filterPublisher, filterRack, filterShelf]);
 
+  // Вспомогательная функция для получения названия шкафа
+  const getRackName = (rack: string | undefined): string => {
+    if (!rack) return "—";
+    return RACK_NAMES[rack] || `Шкаф №${rack}`;
+  };
+
   const handleSurprise = () => {
     if (filterableBooks.length === 0) return;
     const randomBook = filterableBooks[Math.floor(Math.random() * filterableBooks.length)];
@@ -435,7 +535,7 @@ export default function App() {
     const rows = books.map((b: Book) => [
       b.id, b.title, b.authors.join("; "), b.year ?? "",
       b.publisher ?? "", (b.categories || []).join("; "), (b.genres ?? []).join("; "),
-      b.annotation ?? "", b.rack ?? "", b.shelf ?? "",
+      b.annotation ?? "", getRackName(b.rack), b.shelf ?? "",
       b.inventoryNumber ?? "", getPdfUrl(b),
     ]);
 
@@ -455,6 +555,7 @@ export default function App() {
 
   return (
     <main className="app">
+      {/* Встроенные стили (полностью как в исходном коде) */}
       <style>{`
         @font-face {
           font-family: "Wremena";
@@ -520,9 +621,6 @@ export default function App() {
         .filter-section h3 { margin: 0 0 12px; font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--color-green); }
         .filter-input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-text); font-size: 0.95rem; outline: none; }
         .filter-input:focus { border-color: var(--color-green); }
-        .category-dropdown-btn { width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center; background: var(--color-surface); color: var(--color-text); border: 1.5px solid var(--color-border); padding: 10px 14px; border-radius: 6px; font-weight: 400; font-size: 0.95rem; }
-        .category-dropdown-btn:hover { border-color: var(--color-green); }
-        .category-dropdown-menu { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 10; background: var(--color-surface); border: 1.5px solid var(--color-border); border-radius: 6px; max-height: 300px; overflow-y: auto; padding: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
         .year-values { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; color: var(--color-muted); font-variant-numeric: tabular-nums; }
         .year-slider-wrap { padding: 8px 4px; }
         .rc-slider-rail { background: var(--color-border) !important; height: 4px; }
@@ -558,7 +656,7 @@ export default function App() {
         .load-more-container button { padding: 12px 32px; font-size: 1rem; min-width: 200px; }
         .modal-backdrop { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
         .modal { width: min(720px, 100%); max-height: 90vh; overflow: auto; padding: 32px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); }
-        .modal .topbar { padding-bottom: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); }
+        .modal .topbar { padding-bottom: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); display: flex; align-items: center; justify-content: space-between; }
         .modal h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--color-green); }
         .modal-book-layout { display: grid; grid-template-columns: 160px 1fr; gap: 24px; margin-bottom: 20px; align-items: start; }
         .modal-cover { width: 160px; aspect-ratio: 3 / 4; border-radius: 4px; overflow: hidden; border: 1px solid var(--color-border); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
@@ -633,7 +731,7 @@ export default function App() {
             <div className="page-content">
               <p>Вы можете сохранить полный каталог книг в формате CSV. Файл откроется в Excel или любой программе для работы с таблицами.</p>
               <p>В каталог включены все данные: ID, название, авторы, год, издательство, категории, жанры, аннотация, место хранения и ссылка на PDF-файл.</p>
-              <button className="btn-primary" style={{ marginTop: 12 }} onClick={handleDownloadCsv}>
+              <button className="secondary" style={{ marginTop: 12 }} onClick={handleDownloadCsv}>
                 Скачать каталог (CSV)
               </button>
             </div>
@@ -650,7 +748,9 @@ export default function App() {
             <section className="search-area" aria-label="Поиск и фильтры">
               <div className="search-line">
                 <input
-                  className="search-input" type="search" value={query}
+                  className="search-input"
+                  type="search"
+                  value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Поиск по названию, автору, издательству, шкафу, полке…"
                   aria-label="Поиск по каталогу"
@@ -688,10 +788,17 @@ export default function App() {
                         <span>До: {yearRange?.[1] ?? yearBounds.max}</span>
                       </div>
                       <div className="year-slider-wrap">
-                        <Slider range min={yearBounds.min} max={yearBounds.max}
+                        <Slider
+                          range
+                          min={yearBounds.min}
+                          max={yearBounds.max}
                           value={yearRange ?? [yearBounds.min, yearBounds.max]}
-                          onChange={(value) => { if (Array.isArray(value) && value.length === 2) setYearRange([value[0], value[1]]); }}
-                          allowCross={false} />
+                          onChange={(value) => {
+                            if (Array.isArray(value) && value.length === 2)
+                              setYearRange([value[0], value[1]]);
+                          }}
+                          allowCross={false}
+                        />
                       </div>
                       <small className="muted">Доступный диапазон: {yearBounds.min}–{yearBounds.max}</small>
                     </div>
@@ -700,7 +807,8 @@ export default function App() {
                   <div className="filter-section">
                     <h3>Автор</h3>
                     <input
-                      type="text" className="filter-input"
+                      type="text"
+                      className="filter-input"
                       placeholder="Фамилия или инициалы..."
                       value={filterAuthor}
                       onChange={(e) => setFilterAuthor(e.target.value)}
@@ -710,7 +818,8 @@ export default function App() {
                   <div className="filter-section">
                     <h3>Издательство</h3>
                     <input
-                      type="text" className="filter-input"
+                      type="text"
+                      className="filter-input"
                       placeholder="Название издательства..."
                       value={filterPublisher}
                       onChange={(e) => setFilterPublisher(e.target.value)}
@@ -720,13 +829,24 @@ export default function App() {
                   <div className="filter-section">
                     <h3>Место хранения</h3>
                     <div className="storage-selects">
-                      <select value={filterRack} onChange={(e) => setFilterRack(e.target.value)}>
+                      <select
+                        value={filterRack}
+                        onChange={(e) => { setFilterRack(e.target.value); setFilterShelf(""); }}
+                      >
                         <option value="">Все шкафы</option>
-                        {[1, 2, 3, 4].map(n => <option key={n} value={n}>Шкаф {n}</option>)}
+                        {Object.keys(RACK_NAMES).map(rackId => (
+                          <option key={rackId} value={rackId}>{RACK_NAMES[rackId]}</option>
+                        ))}
                       </select>
-                      <select value={filterShelf} onChange={(e) => setFilterShelf(e.target.value)}>
+                      <select
+                        value={filterShelf}
+                        onChange={(e) => setFilterShelf(e.target.value)}
+                        disabled={!filterRack}
+                      >
                         <option value="">Все полки</option>
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={n}>Полка {n}</option>)}
+                        {filterRack && [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                          <option key={n} value={String(n)}>Полка {n}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -757,6 +877,7 @@ export default function App() {
                 <section className="grid">
                   {visibleBooks.slice(0, visibleCount).map((book: Book) => {
                     const fileUrl = getPdfUrl(book);
+                    const rackName = getRackName(book.rack);
                     return (
                       <article className="book-card" key={book.id}>
                         <span className="tag">{(book.categories || []).join(", ") || "Без категории"}</span>
@@ -776,13 +897,18 @@ export default function App() {
                           {book.publisher && (<p><strong>Издательство</strong>{book.publisher}</p>)}
 
                           {(book.rack || book.shelf) && (
-                            <p><strong>Место хранения</strong>Шкаф № {book.rack || "—"}, полка № {book.shelf || "—"}</p>
+                            <p><strong>Место хранения</strong>{rackName}, полка № {book.shelf || "—"}</p>
                           )}
 
                           <div className="card-actions">
                             <button className="secondary" onClick={() => setSelectedBook(book)}>Подробнее</button>
                             {fileUrl && (
-                              <a href={fileUrl} target="_blank" rel="noreferrer" download={!fileUrl.startsWith("http") ? book.pdfPath?.split("/").pop() : undefined}>
+                              <a
+                                href={fileUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                download={!fileUrl.startsWith("http") ? book.pdfPath?.split("/").pop() : undefined}
+                              >
                                 Скачать PDF
                               </a>
                             )}
@@ -795,7 +921,9 @@ export default function App() {
 
                 {visibleCount < visibleBooks.length && (
                   <div className="load-more-container">
-                    <button type="button" className="secondary" onClick={() => setVisibleCount((prev) => prev + 10)}>Показать еще</button>
+                    <button type="button" className="secondary" onClick={() => setVisibleCount((prev) => prev + 10)}>
+                      Показать еще
+                    </button>
                   </div>
                 )}
               </>
@@ -815,7 +943,13 @@ export default function App() {
 
       {selectedBook && (
         <div className="modal-backdrop" role="presentation" onClick={() => setSelectedBook(null)}>
-          <section className="modal" role="dialog" aria-modal="true" aria-label="Карточка книги" onClick={(e) => e.stopPropagation()}>
+          <section
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Карточка книги"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="topbar">
               <h2>{selectedBook.title}</h2>
               <button className="secondary" onClick={() => setSelectedBook(null)}>Закрыть</button>
@@ -833,7 +967,8 @@ export default function App() {
                 <p><strong>Издательство:</strong> {selectedBook.publisher || "—"}</p>
                 <p><strong>Категории:</strong> {(selectedBook.categories || []).join(", ") || "—"}</p>
                 <p><strong>Жанры:</strong> {selectedBook.genres?.join(", ") || "—"}</p>
-                <p><strong>Шкаф:</strong> {selectedBook.rack || "—"}</p>
+                {/* Шкаф с названием */}
+                <p><strong>Шкаф:</strong> {getRackName(selectedBook.rack)}</p>
                 <p><strong>Полка:</strong> {selectedBook.shelf || "—"}</p>
                 <p><strong>Инвентарный номер:</strong> {selectedBook.inventoryNumber || "—"}</p>
               </div>
