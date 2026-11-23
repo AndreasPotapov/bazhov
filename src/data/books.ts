@@ -22,30 +22,29 @@ export type Book = {
 
 export const books: Book[] = [
   {
-    "id": "B-0009",
+    "id": "B-0005",
     "title": "На Урале",
     "authors": [
-      "С. Васильев"
+      "Сергей Васильев"
     ],
     "year": 1944,
-    "publisher": "Детгиз",
+    "publisher": "Детгиз, Москва",
     "categories": [
       "Книжные издания"
     ],
     "category": "Книжные издания",
     "genres": [
       "Рассказы и новеллы",
-      "Поэзия",
-      "Произведения для детей"
+      "Стихотворения",
+      "Поэзия"
     ],
-    "annotation": "Книга стихов С. Васильева",
+    "annotation": "Собрание стихотворений С. Васильева. Рисунки В. Таубера. Государственное издательство детской литературы минпроса РСФСР. ",
     "rack": "1",
     "shelf": "3",
-    "inventoryNumber": "B-0009",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0009.pdf",
+    "inventoryNumber": "B-0005",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005.pdf",
     "published": true,
-    "ocrUrl": "",
-    "processing": false
+    "ocrUrl": ""
   },
   {
     "id": "B-0004",
