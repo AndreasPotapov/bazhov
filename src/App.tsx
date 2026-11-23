@@ -365,7 +365,30 @@ function getPdfUrl(book: Book): string {
 // --- PDF-ОБЛОЖКА ---
 const coverCache = new Map<string, string>();
 
-function PdfCover({ src, alt }: { src: string; alt: string }) {
+// Основной компонент: если есть coverUrl — показываем готовую картинку,
+// иначе — рендерим первую страницу PDF (для старых книг).
+function PdfCover({ src, coverUrl, alt }: { src: string; coverUrl?: string; alt: string }) {
+  if (coverUrl) {
+    return (
+      <div className="cover-wrap">
+        <img
+          className="cover-image"
+          src={coverUrl}
+          alt={alt}
+          loading="lazy"
+          onError={(e) => {
+            // Если файла нет — прячем картинку и оставляем плейсхолдер
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
+      </div>
+    );
+  }
+  return <PdfRenderCover src={src} alt={alt} />;
+}
+
+// Fallback: рендерит первую страницу PDF через pdfjs-dist.
+function PdfRenderCover({ src, alt }: { src: string; alt: string }) {
   const [dataUrl, setDataUrl] = useState<string | null>(() => coverCache.get(src) ?? null);
   const [failed, setFailed] = useState(false);
 
