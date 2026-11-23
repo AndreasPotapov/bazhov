@@ -28,6 +28,7 @@ type Book = {
   published?: boolean;
   ocrUrl?: string;
   processing?: boolean;
+  coverUrl?: string;   // <-- добавить (пригодится для обложек)
 };
 
 // --- РУБРИКАТОР ---
