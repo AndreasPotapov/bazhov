@@ -69,29 +69,6 @@ export const books: Book[] = [
     "ocrUrl": ""
   },
   {
-    "id": "B-0005",
-    "title": "большая книга тест 8",
-    "authors": [
-      "Уа-уа"
-    ],
-    "year": 2026,
-    "publisher": "Ау",
-    "categories": [
-      "Книжные издания"
-    ],
-    "category": "Книжные издания",
-    "genres": [
-      "Рассказы и новеллы"
-    ],
-    "annotation": "",
-    "rack": "3",
-    "shelf": "3",
-    "inventoryNumber": "B-0005",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0005.pdf",
-    "published": true,
-    "ocrUrl": ""
-  },
-  {
     "id": "B-0004",
     "title": "Сочинения в 3 томах. Том 3: Уральские были",
     "authors": [
