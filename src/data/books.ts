@@ -21,7 +21,7 @@ export type Book = {
 };
 
 export const books: Book[] = [
-  {
+  { 
     "id": "B-0005",
     "title": "На Урале",
     "authors": [
@@ -42,9 +42,11 @@ export const books: Book[] = [
     "rack": "1",
     "shelf": "3",
     "inventoryNumber": "B-0005",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005.pdf",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0005.pdf",
+    "coverUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005_cover.jpg",
     "published": true,
-    "ocrUrl": ""
+    "ocrUrl": "",
+    "processing": false
   },
   {
     "id": "B-0004",
@@ -70,7 +72,7 @@ export const books: Book[] = [
     "rack": "4",
     "shelf": "8",
     "inventoryNumber": "B-0004",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0004.pdf",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0004.pdf",
     "published": true,
     "ocrUrl": ""
   },
@@ -95,7 +97,7 @@ export const books: Book[] = [
     "rack": "2",
     "shelf": "7",
     "inventoryNumber": "B-0003",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0003.pdf",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0003.pdf",
     "published": true,
     "ocrUrl": ""
   },
@@ -121,7 +123,7 @@ export const books: Book[] = [
     "rack": "2",
     "shelf": "1",
     "inventoryNumber": "B-0002",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0002.pdf",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0002.pdf",
     "published": true,
     "ocrUrl": ""
   }
