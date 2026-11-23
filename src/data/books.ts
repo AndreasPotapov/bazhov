@@ -22,6 +22,29 @@ export type Book = {
 
 export const books: Book[] = [
   {
+    "id": "B-0008",
+    "title": "На Урале",
+    "authors": [
+      "Васильев С."
+    ],
+    "year": 1944,
+    "publisher": "Детгиз",
+    "categories": [
+      "Книжные издания"
+    ],
+    "category": "Книжные издания",
+    "genres": [
+      "Рассказы и новеллы"
+    ],
+    "annotation": "Сборник стихов С. Васильева",
+    "rack": "1",
+    "shelf": "3",
+    "inventoryNumber": "B-0008",
+    "pdfUrl": "",
+    "published": true,
+    "ocrUrl": ""
+  },
+  {
     "id": "B-0004",
     "title": "Сочинения в 3 томах. Том 3: Уральские были",
     "authors": [
