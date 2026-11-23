@@ -22,10 +22,10 @@ export type Book = {
 
 export const books: Book[] = [
   {
-    "id": "B-0008",
+    "id": "B-0009",
     "title": "На Урале",
     "authors": [
-      "Васильев С."
+      "С. Васильев"
     ],
     "year": 1944,
     "publisher": "Детгиз",
@@ -36,11 +36,80 @@ export const books: Book[] = [
     "genres": [
       "Рассказы и новеллы"
     ],
-    "annotation": "Сборник стихов С. Васильева",
+    "annotation": "Книга стихов С. Васильева",
     "rack": "1",
     "shelf": "3",
-    "inventoryNumber": "B-0008",
-    "pdfUrl": "",
+    "inventoryNumber": "B-0009",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0009.pdf",
+    "published": true,
+    "ocrUrl": ""
+  },
+  {
+    "id": "B-0007",
+    "title": "тест большой после оптимизации",
+    "authors": [
+      "Укола"
+    ],
+    "year": 2026,
+    "publisher": "",
+    "categories": [
+      "Справочные издания"
+    ],
+    "category": "Справочные издания",
+    "genres": [
+      "Словари"
+    ],
+    "annotation": "",
+    "rack": "1",
+    "shelf": "2",
+    "inventoryNumber": "B-0007",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0007.pdf",
+    "published": true,
+    "ocrUrl": ""
+  },
+  {
+    "id": "B-0006",
+    "title": "тест 9",
+    "authors": [
+      "Пуп"
+    ],
+    "year": 2026,
+    "publisher": "",
+    "categories": [
+      "Книжные издания"
+    ],
+    "category": "Книжные издания",
+    "genres": [
+      "Биографическая проза"
+    ],
+    "annotation": "",
+    "rack": "1",
+    "shelf": "5",
+    "inventoryNumber": "B-0006",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0006.pdf",
+    "published": true,
+    "ocrUrl": ""
+  },
+  {
+    "id": "B-0005",
+    "title": "большая книга тест 8",
+    "authors": [
+      "Уа-уа"
+    ],
+    "year": 2026,
+    "publisher": "Ау",
+    "categories": [
+      "Книжные издания"
+    ],
+    "category": "Книжные издания",
+    "genres": [
+      "Рассказы и новеллы"
+    ],
+    "annotation": "",
+    "rack": "3",
+    "shelf": "3",
+    "inventoryNumber": "B-0005",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005.pdf",
     "published": true,
     "ocrUrl": ""
   },
@@ -120,6 +189,29 @@ export const books: Book[] = [
     "shelf": "1",
     "inventoryNumber": "B-0002",
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0002.pdf",
+    "published": true,
+    "ocrUrl": ""
+  },
+  {
+    "id": "B-0008",
+    "title": "На Урале",
+    "authors": [
+      "Васильев С."
+    ],
+    "year": 1944,
+    "publisher": "Детгиз",
+    "categories": [
+      "Книжные издания"
+    ],
+    "category": "Книжные издания",
+    "genres": [
+      "Рассказы и новеллы"
+    ],
+    "annotation": "Сборник стихов С. Васильева",
+    "rack": "1",
+    "shelf": "3",
+    "inventoryNumber": "B-0008",
+    "pdfUrl": "",
     "published": true,
     "ocrUrl": ""
   }
