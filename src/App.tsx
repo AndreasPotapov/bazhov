@@ -328,6 +328,7 @@ function normalizeBook(value: any): Book {
     pdfFileName: String(value.pdfFileName ?? "").trim(),
     published: value.published !== false,
     processing: value.processing,
+    coverUrl: String(value.coverUrl ?? "").trim() || undefined,
   };
 }
 
@@ -904,8 +905,7 @@ export default function App() {
                     return (
                       <article className="book-card" key={book.id}>
                         <span className="tag">{(book.categories || []).join(", ") || "Без категории"}</span>
-                        {fileUrl && <PdfCover src={fileUrl} alt={`Обложка книги «${book.title}»`} />}
-                        <div className="book-info">
+                          {fileUrl && <PdfCover src={fileUrl} coverUrl={book.coverUrl} alt={`Обложка книги «${book.title}»`} />}                        <div className="book-info">
                           <h2>
                             <button
                               className="title-btn"
@@ -981,7 +981,7 @@ export default function App() {
             <div className="modal-book-layout">
               {getPdfUrl(selectedBook) && (
                 <div className="modal-cover">
-                  <PdfCover src={getPdfUrl(selectedBook)} alt={`Обложка книги «${selectedBook.title}»`} />
+                  <PdfCover src={getPdfUrl(selectedBook)} coverUrl={selectedBook.coverUrl} alt={`Обложка книги «${selectedBook.title}»`} />
                 </div>
               )}
               <div className="modal-book-main">
