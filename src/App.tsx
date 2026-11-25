@@ -514,7 +514,11 @@ function TocModal({ book, onClose }: { book: Book; onClose: () => void }) {
 
 // --- ПРИЛОЖЕНИЕ ---
 export default function App() {
-  const books = useMemo(() => (seedBooks as any[]).map((b: any) => normalizeBook(b)), []);
+    const books = useMemo(() => {
+    return (seedBooks as any[])
+      .map((b: any) => normalizeBook(b))
+      .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+  }, []);
 
   const [query, setQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
