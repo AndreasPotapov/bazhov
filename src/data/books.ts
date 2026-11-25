@@ -21,7 +21,7 @@ export type Book = {
 };
 
 export const books: Book[] = [
-  { 
+  {
     "id": "B-0005",
     "title": "На Урале",
     "authors": [
