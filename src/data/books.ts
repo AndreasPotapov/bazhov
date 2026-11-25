@@ -25,12 +25,40 @@ export type Book = {
 
 export const books: Book[] = [
   {
+    "id": "B-0005",
+    "title": "На Урале",
+    "authors": [
+      "Сергей Васильев"
+    ],
+    "year": 1944,
+    "publisher": "Детгиз, Москва",
+    "categories": [
+      "Книжные издания"
+    ],
+    "category": "Книжные издания",
+    "genres": [
+      "Рассказы и новеллы",
+      "Стихотворения",
+      "Поэзия"
+    ],
+    "annotation": "Собрание стихотворений С. Васильева. Рисунки В. Таубера. Государственное издательство детской литературы минпроса РСФСР. ",
+    "rack": "1",
+    "shelf": "3",
+    "inventoryNumber": "B-0005",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0005.pdf",
+    "published": true,
+    "ocrUrl": "",
+    "coverUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005_cover.jpg",
+    "processing": false,
+    "toc": []
+  },
+  {
     "id": "B-0004",
-    "title": "Сочинения в трех томах. Том 3: Уральские были",
+    "title": "Сочинения в 3 томах. Том 3: Уральские были",
     "authors": [
       "Бажов П. П."
     ],
-    "year": 2026,
+    "year": 1986,
     "publisher": "Правда, Москва",
     "categories": [
       "Проза"
@@ -38,14 +66,15 @@ export const books: Book[] = [
     "category": "Проза",
     "genres": [
       "Альманахи и сборники",
-      "Мифы и мифологические сюжеты",
-      "Легенды и предания",
       "Повести",
+      "Сказки",
+      "Сборники прозы",
+      "Сказки и познавательные истории",
       "Рассказы и новеллы"
     ],
-    "annotation": "Собрание сочинений печатается по изданию: П. П. Бажов. Сочинения в трех томах. Изд-во «Правда». 1976\nИллюстрации художника\nИ. И. Пчелко",
-    "rack": "1",
-    "shelf": "1",
+    "annotation": "Собрание сочинений печатается по изданию: \nП. П. Б а ж о в. Сочинения в трех томах. \nИзд-во «Правда». 1976*\nИллюстрации художника\nИ. И. Пчелко",
+    "rack": "4",
+    "shelf": "8",
     "inventoryNumber": "B-0004",
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0004.pdf",
     "published": true,
@@ -59,7 +88,7 @@ export const books: Book[] = [
       "Бажов П. П."
     ],
     "year": 1986,
-    "publisher": "Москва",
+    "publisher": "Правда, Москва",
     "categories": [
       "Проза"
     ],
@@ -75,6 +104,7 @@ export const books: Book[] = [
     "inventoryNumber": "B-0003",
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0003.pdf",
     "published": true,
+    "ocrUrl": "",
     "toc": []
   },
   {
@@ -101,34 +131,7 @@ export const books: Book[] = [
     "inventoryNumber": "B-0002",
     "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0002.pdf",
     "published": true,
-    "toc": []
-  },
-  {
-    "id": "B-0005",
-    "title": "На Урале",
-    "authors": [
-      "Сергей Васильев"
-    ],
-    "year": 1944,
-    "publisher": "Детгиз, Москва",
-    "categories": [
-      "Книжные издания"
-    ],
-    "category": "Книжные издания",
-    "genres": [
-      "Рассказы и новеллы",
-      "Стихотворения",
-      "Поэзия"
-    ],
-    "annotation": "Собрание стихотворений С. Васильева. Рисунки В. Таубера. Государственное издательство детской литературы минпроса РСФСР. ",
-    "rack": "1",
-    "shelf": "3",
-    "inventoryNumber": "B-0005",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0005.pdf",
-    "published": true,
     "ocrUrl": "",
-    "coverUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0005_cover.jpg",
-    "processing": false,
     "toc": []
   }
 ];
