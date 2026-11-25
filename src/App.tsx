@@ -8,7 +8,9 @@ import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-// --- ТИП ДАННЫХ ---
+// --- ТИПЫ ---
+type TocEntry = { title: string; page: number };
+
 type Book = {
   id: string;
   title: string;
@@ -29,9 +31,10 @@ type Book = {
   ocrUrl?: string;
   processing?: boolean;
   coverUrl?: string;
+  toc?: TocEntry[];
 };
 
-// --- НАЗВАНИЯ ШКАФОВ (добавлено) ---
+// --- НАЗВАНИЯ ШКАФОВ ---
 const RACK_NAMES: Record<string, string> = {
   "1": "Детская",
   "2": "Коридор",
@@ -289,7 +292,7 @@ function RubricatorSelector({
   );
 }
 
-// --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+// --- НОРМАЛИЗАЦИЯ ---
 function normalizeBook(value: any): Book {
   const authors = Array.isArray(value.authors)
     ? value.authors.map((a: any) => String(a).trim()).filter(Boolean)
@@ -308,6 +311,14 @@ function normalizeBook(value: any): Book {
   const categories = Array.isArray(rawCategories)
     ? rawCategories.map(String).filter(Boolean)
     : value.category ? [String(value.category).trim()].filter(Boolean) : [];
+
+  const rawToc = value.toc;
+  const toc: TocEntry[] = Array.isArray(rawToc)
+    ? rawToc
+        .filter((t: any) => t && typeof t.title === "string" && typeof t.page === "number")
+        .map((t: any) => ({ title: String(t.title).trim(), page: Number(t.page) }))
+        .filter((t: TocEntry) => t.title && t.page > 0)
+    : [];
 
   return {
     id: String(value.id ?? "").trim(),
@@ -329,9 +340,11 @@ function normalizeBook(value: any): Book {
     published: value.published !== false,
     processing: value.processing,
     coverUrl: String(value.coverUrl ?? "").trim() || undefined,
+    toc,
   };
 }
 
+// --- ПОИСК ---
 function stemText(text: string): string[] {
   const normalized = text.toLocaleLowerCase("ru-RU").replaceAll("ё", "е");
   return normalized.split(/[^a-zа-я0-9]+/i).filter(Boolean).map((word) => russian(word));
@@ -352,6 +365,13 @@ function matchesSearch(book: Book, query: string): boolean {
   const bookStemList = bookStems(book);
   return queryStems.every((stem) => bookStemList.includes(stem));
 }
+function sanitizeFilename(name: string): string {
+    return name
+      .replace(/[\/\\:*?"<>|]/g, "_")   // запрещённые символы Windows/Mac
+      .replace(/\s+/g, " ")              // множественные пробелы → один
+      .trim()
+      .slice(0, 200) || "book";          // ограничение длины и fallback
+  }
 
 function getPdfUrl(book: Book): string {
   if (book.pdfUrl && book.pdfUrl.startsWith("http")) return book.pdfUrl;
@@ -366,8 +386,6 @@ function getPdfUrl(book: Book): string {
 // --- PDF-ОБЛОЖКА ---
 const coverCache = new Map<string, string>();
 
-// Основной компонент: если есть coverUrl — показываем готовую картинку,
-// иначе — рендерим первую страницу PDF (для старых книг).
 function PdfCover({ src, coverUrl, alt }: { src: string; coverUrl?: string; alt: string }) {
   if (coverUrl) {
     return (
@@ -378,7 +396,6 @@ function PdfCover({ src, coverUrl, alt }: { src: string; coverUrl?: string; alt:
           alt={alt}
           loading="lazy"
           onError={(e) => {
-            // Если файла нет — прячем картинку и оставляем плейсхолдер
             (e.target as HTMLImageElement).style.display = "none";
           }}
         />
@@ -388,7 +405,6 @@ function PdfCover({ src, coverUrl, alt }: { src: string; coverUrl?: string; alt:
   return <PdfRenderCover src={src} alt={alt} />;
 }
 
-// Fallback: рендерит первую страницу PDF через pdfjs-dist.
 function PdfRenderCover({ src, alt }: { src: string; alt: string }) {
   const [dataUrl, setDataUrl] = useState<string | null>(() => coverCache.get(src) ?? null);
   const [failed, setFailed] = useState(false);
@@ -448,7 +464,55 @@ function PdfRenderCover({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-// --- ОСНОВНОЙ КОМПОНЕНТ ---
+// --- МОДАЛЬНОЕ ОКНО ОГЛАВЛЕНИЯ ---
+function TocModal({ book, onClose }: { book: Book; onClose: () => void }) {
+  const toc = book.toc || [];
+  const pdfUrl = getPdfUrl(book);
+
+  return (
+    <div className="modal-backdrop toc-backdrop" onClick={onClose} role="presentation">
+      <section
+        className="modal toc-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Оглавление книги"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="topbar">
+          <h2>Оглавление</h2>
+          <button className="secondary" onClick={onClose}>Закрыть</button>
+        </div>
+        <p className="muted" style={{ marginTop: 0, marginBottom: 16 }}>
+          {book.title}
+        </p>
+
+        {toc.length === 0 ? (
+          <p>У этой книги пока нет оглавления.</p>
+        ) : (
+          <ol className="toc-list">
+            {toc.map((item, i) => {
+              const href = pdfUrl ? `${pdfUrl}#page=${item.page}` : undefined;
+              return (
+                <li key={i}>
+                  {href ? (
+                    <a href={href} target="_blank" rel="noreferrer">
+                      {item.title}
+                    </a>
+                  ) : (
+                    <span className="toc-title">{item.title}</span>
+                  )}
+                  <span className="toc-page">{item.page}</span>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </section>
+    </div>
+  );
+}
+
+// --- ПРИЛОЖЕНИЕ ---
 export default function App() {
   const books = useMemo(() => (seedBooks as any[]).map((b: any) => normalizeBook(b)), []);
 
@@ -462,6 +526,7 @@ export default function App() {
   const [filterRack, setFilterRack] = useState("");
   const [filterShelf, setFilterShelf] = useState("");
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [tocBook, setTocBook] = useState<Book | null>(null);
   const [visibleCount, setVisibleCount] = useState(5);
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<"catalog" | "about" | "download">("catalog");
@@ -537,7 +602,6 @@ export default function App() {
     });
   }, [books, query, selectedCategories, selectedGenres, yearRange, filterAuthor, filterPublisher, filterRack, filterShelf]);
 
-  // Вспомогательная функция для получения названия шкафа
   const getRackName = (rack: string | undefined): string => {
     if (!rack) return "—";
     return RACK_NAMES[rack] || `Шкаф №${rack}`;
@@ -550,7 +614,38 @@ export default function App() {
     setSelectedBook(randomBook);
     setMenuOpen(false);
   };
+  const handleDownloadPdf = async (book: Book) => {
+  const url = getPdfUrl(book);
+  if (!url) return;
 
+  // Для локальных путей (не http) — просто открываем в новой вкладке
+  if (!url.startsWith("http")) {
+    window.open(url, "_blank");
+    return;
+  }
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const blob = await response.blob();
+
+    const title = sanitizeFilename(book.title || book.id);
+    const filename = `${title}.pdf`;
+
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+  } catch (e) {
+    console.error("[Download] Ошибка:", e);
+    // Fallback — открыть в новой вкладке, если fetch не сработал
+    window.open(url, "_blank");
+  }
+};
   const handleDownloadCsv = () => {
     const headers = [
       "ID", "Название", "Автор", "Год", "Издательство", "Категории",
@@ -579,7 +674,6 @@ export default function App() {
 
   return (
     <main className="app">
-      {/* Встроенные стили (полностью как в исходном коде) */}
       <style>{`
         @font-face {
           font-family: "Wremena";
@@ -679,7 +773,9 @@ export default function App() {
         .load-more-container { display: flex; justify-content: center; margin-top: 32px; margin-bottom: 16px; }
         .load-more-container button { padding: 12px 32px; font-size: 1rem; min-width: 200px; }
         .modal-backdrop { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
+        .toc-backdrop { z-index: 10; } /* поверх окна книги */
         .modal { width: min(720px, 100%); max-height: 90vh; overflow: auto; padding: 32px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); }
+        .toc-modal { width: min(640px, 100%); }
         .modal .topbar { padding-bottom: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); display: flex; align-items: center; justify-content: space-between; }
         .modal h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--color-green); }
         .modal-book-layout { display: grid; grid-template-columns: 160px 1fr; gap: 24px; margin-bottom: 20px; align-items: start; }
@@ -690,6 +786,13 @@ export default function App() {
         .modal p { margin: 0 0 10px; font-size: 0.95rem; line-height: 1.55; color: var(--color-text); }
         .modal p strong { font-weight: 700; color: var(--color-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; margin-right: 6px; }
         .modal a { color: var(--color-green); font-weight: 500; text-decoration: none; border-bottom: 1px solid var(--color-green); }
+        .toc-list { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+        .toc-list li { display: flex; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 0.95rem; }
+        .toc-list li:last-child { border-bottom: none; }
+        .toc-list a, .toc-list .toc-title { flex: 1; min-width: 0; color: var(--color-text); text-decoration: none; }
+        .toc-list a { color: var(--color-green); }
+        .toc-list a:hover { text-decoration: underline; }
+        .toc-page { color: var(--color-muted); font-variant-numeric: tabular-nums; flex-shrink: 0; font-size: 0.9rem; }
         .site-footer { margin-top: auto; padding-top: 60px; padding-bottom: 40px; border-top: 1px solid var(--color-border); display: flex; flex-direction: column; align-items: center; gap: 24px; }
         .footer-logos { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 40px; }
         .logo-placeholder { width: 140px; height: 70px; background: var(--color-surface); border: 1px dashed var(--color-border); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--color-muted); text-align: center; padding: 8px; }
@@ -902,10 +1005,12 @@ export default function App() {
                   {visibleBooks.slice(0, visibleCount).map((book: Book) => {
                     const fileUrl = getPdfUrl(book);
                     const rackName = getRackName(book.rack);
+                    const hasToc = !!(book.toc && book.toc.length > 0);
                     return (
                       <article className="book-card" key={book.id}>
                         <span className="tag">{(book.categories || []).join(", ") || "Без категории"}</span>
-                          {fileUrl && <PdfCover src={fileUrl} coverUrl={book.coverUrl} alt={`Обложка книги «${book.title}»`} />}                        <div className="book-info">
+                        {fileUrl && <PdfCover src={fileUrl} coverUrl={book.coverUrl} alt={`Обложка книги «${book.title}»`} />}
+                        <div className="book-info">
                           <h2>
                             <button
                               className="title-btn"
@@ -925,15 +1030,18 @@ export default function App() {
 
                           <div className="card-actions">
                             <button className="secondary" onClick={() => setSelectedBook(book)}>Подробнее</button>
+                            {hasToc && (
+                              <button className="secondary" onClick={() => setTocBook(book)}>Оглавление</button>
+                            )}
                             {fileUrl && (
                               <a
-                                href={fileUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                download={!fileUrl.startsWith("http") ? book.pdfPath?.split("/").pop() : undefined}
-                              >
-                                Скачать PDF
-                              </a>
+                              href={fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => { e.preventDefault(); handleDownloadPdf(book); }}
+                            >
+                              Скачать PDF
+                            </a>
                             )}
                           </div>
                         </div>
@@ -990,7 +1098,6 @@ export default function App() {
                 <p><strong>Издательство:</strong> {selectedBook.publisher || "—"}</p>
                 <p><strong>Категории:</strong> {(selectedBook.categories || []).join(", ") || "—"}</p>
                 <p><strong>Жанры:</strong> {selectedBook.genres?.join(", ") || "—"}</p>
-                {/* Шкаф с названием */}
                 <p><strong>Шкаф:</strong> {getRackName(selectedBook.rack)}</p>
                 <p><strong>Полка:</strong> {selectedBook.shelf || "—"}</p>
                 <p><strong>Инвентарный номер:</strong> {selectedBook.inventoryNumber || "—"}</p>
@@ -998,15 +1105,21 @@ export default function App() {
             </div>
 
             <p><strong>Аннотация:</strong> {selectedBook.annotation || "—"}</p>
-
-            {getPdfUrl(selectedBook) && (
-              <p style={{ marginTop: 16 }}>
+              
+            <div style={{ display: "flex", gap: 12, marginTop: 16, flexWrap: "wrap", alignItems: "center" }}>
+              
+              {getPdfUrl(selectedBook) && (
                 <a href={getPdfUrl(selectedBook)} target="_blank" rel="noreferrer">Открыть PDF</a>
-              </p>
-            )}
+              )}
+              {selectedBook.toc && selectedBook.toc.length > 0 && (
+                <button className="secondary" onClick={() => setTocBook(selectedBook)}>Оглавление</button>
+              )}
+            </div>
           </section>
         </div>
       )}
+
+      {tocBook && <TocModal book={tocBook} onClose={() => setTocBook(null)} />}
     </main>
   );
 }

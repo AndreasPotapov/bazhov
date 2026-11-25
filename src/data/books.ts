@@ -1,3 +1,4 @@
+export type TocEntry = { title: string; page: number };
 export type Book = {
   id: string;
   title: string;
@@ -18,6 +19,7 @@ export type Book = {
   ocrUrl?: string;
   coverUrl?: string;
   processing?: boolean;
+  toc?: TocEntry[];
 };
 
 export const books: Book[] = [
