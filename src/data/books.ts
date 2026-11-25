@@ -1,5 +1,3 @@
-export type TocEntry = { title: string; page: number };
-
 export type Book = {
   id: string;
   title: string;
@@ -20,7 +18,6 @@ export type Book = {
   ocrUrl?: string;
   coverUrl?: string;
   processing?: boolean;
-  toc?: TocEntry[];
 };
 
 export const books: Book[] = [
@@ -44,10 +41,10 @@ export const books: Book[] = [
     "rack": "5",
     "shelf": "2",
     "inventoryNumber": "B-0006",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0006.pdf",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0006.pdf",
     "published": true,
     "ocrUrl": "",
-    "processing": true,
+    "processing": false,
     "toc": [
       {
         "title": "Введение",
@@ -61,7 +58,8 @@ export const books: Book[] = [
         "title": "за книгой",
         "page": 99
       }
-    ]
+    ],
+    "coverUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0006_cover.jpg"
   },
   {
     "id": "B-0005",
