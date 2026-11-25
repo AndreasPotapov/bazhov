@@ -1,4 +1,5 @@
 export type TocEntry = { title: string; page: number };
+
 export type Book = {
   id: string;
   title: string;
@@ -23,44 +24,6 @@ export type Book = {
 };
 
 export const books: Book[] = [
-  {
-    "id": "B-0006",
-    "title": "тест оглавления",
-    "authors": [
-      "Автор П. А."
-    ],
-    "year": 2026,
-    "publisher": "Алетейя",
-    "categories": [
-      "Справочные издания"
-    ],
-    "category": "Справочные издания",
-    "genres": [
-      "Литературные энциклопедии"
-    ],
-    "annotation": "Исправленный размер аннотации, проверка, как выглядит на сайте",
-    "rack": "1",
-    "shelf": "1",
-    "inventoryNumber": "B-0006",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0006.pdf",
-    "published": true,
-    "ocrUrl": "",
-    "processing": true,
-    "toc": [
-      {
-        "title": "Введение",
-        "page": 3
-      },
-      {
-        "title": "Глава 1",
-        "page": 4
-      },
-      {
-        "title": "Глава 2 ",
-        "page": 33
-      }
-    ]
-  },
   {
     "id": "B-0005",
     "title": "На Урале",
