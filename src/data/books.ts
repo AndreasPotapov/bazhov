@@ -25,6 +25,45 @@ export type Book = {
 
 export const books: Book[] = [
   {
+    "id": "B-0006",
+    "title": "Тест",
+    "authors": [
+      "Автор П. а."
+    ],
+    "year": 2026,
+    "publisher": "Издательство",
+    "categories": [
+      "Художественная литература"
+    ],
+    "category": "Художественная литература",
+    "genres": [
+      "Повести",
+      "Историческая драматургия"
+    ],
+    "annotation": "Длинная аннотация, по которой можно будет найти слово велосипеды шлагбаум",
+    "rack": "5",
+    "shelf": "2",
+    "inventoryNumber": "B-0006",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0006.pdf",
+    "published": true,
+    "ocrUrl": "",
+    "processing": true,
+    "toc": [
+      {
+        "title": "Введение",
+        "page": 3
+      },
+      {
+        "title": "середина книги 80",
+        "page": 40
+      },
+      {
+        "title": "за книгой",
+        "page": 99
+      }
+    ]
+  },
+  {
     "id": "B-0005",
     "title": "На Урале",
     "authors": [
