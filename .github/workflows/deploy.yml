@@ -2,8 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: ["main"]
-  workflow_dispatch:
+    branches: [main] # или master, если у тебя так
 
 permissions:
   contents: read
@@ -15,25 +14,22 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build
+      - name: Build project
         run: npm run build
 
       - name: Setup Pages
@@ -42,8 +38,15 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
+          path: ./dist # Важно: именно dist для Vite
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

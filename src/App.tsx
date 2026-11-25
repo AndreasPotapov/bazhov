@@ -347,7 +347,10 @@ function normalizeBook(value: any): Book {
 // --- ПОИСК ---
 function stemText(text: string): string[] {
   const normalized = text.toLocaleLowerCase("ru-RU").replaceAll("ё", "е");
-  return normalized.split(/[^a-zа-я0-9]+/i).filter(Boolean).map((word) => russian(word));
+  return normalized
+    .split(/[^a-zа-я0-9]+/i)
+    .filter(Boolean)
+    .map((word) => (word.length === 1 ? word : russian(word) || word));
 }
 
 function bookStems(book: Book): string[] {
