@@ -44,7 +44,7 @@ export const books: Book[] = [
     "rack": "5",
     "shelf": "2",
     "inventoryNumber": "B-0006",
-    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/books/B-0006.pdf",
+    "pdfUrl": "https://storage.yandexcloud.net/bazhov-library-files/scanned-books/B-0006.pdf",
     "published": true,
     "ocrUrl": "",
     "processing": true,
